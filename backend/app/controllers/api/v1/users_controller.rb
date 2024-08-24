@@ -18,6 +18,7 @@ class API::V1::UsersController < ApplicationController
       render json: @user.errors, status: :unprocessable_entity
     end
   end
+  
 
   def update
     #byebug
@@ -29,6 +30,23 @@ class API::V1::UsersController < ApplicationController
   end
 
   private
+
+  def friendships
+        @friends = @user.friends
+        render json: { friendships: @friends }, status: :ok
+      end
+
+     
+  def create_friendship
+        friend = User.find_by(id: params[:friend_id])
+        if friend && @user.friends << friend
+          render json: { message: "Friendship created successfully." }, status: :created
+        else
+          render json: { error: "Unable to create friendship." }, status: :unprocessable_entity
+        end
+      end
+
+      private
 
   def set_user
     @user = User.find(params[:id])
