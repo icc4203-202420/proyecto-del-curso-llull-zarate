@@ -7,7 +7,7 @@ function BarEvents({ barId }) {
 
   useEffect(() => {
     if (barId) {
-      axios.get(`http://localhost:3001/api/v1/events/${barId}`) // Asegúrate de usar la URL correcta para tu API
+      axios.get(`http://localhost:3001/api/v1/events/${barId}`) 
         .then(response => {
           setEvents(response.data);
         })

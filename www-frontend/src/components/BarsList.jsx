@@ -1,32 +1,38 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, TextField, Button, Box, List, ListItem, ListItemText } from '@mui/material';
+import { Typography, TextField, Button, Box, Card, CardContent, Container } from '@mui/material';
 import axios from 'axios';
 
 function BarsList() {
   const [bars, setBars] = useState([]);
+  const [filteredBars, setFilteredBars] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedBar, setSelectedBar] = useState(null);
 
   useEffect(() => {
     axios.get('http://localhost:3001/api/v1/bars')
       .then(response => {
-        setBars(response.data);
+        console.log('Datos de bares:', response.data.bars); 
+        setBars(response.data.bars || []);  
+        setFilteredBars(response.data.bars || []); 
       })
       .catch(error => {
-        console.error('Error fetching bars:', error);
+        console.error('Error al obtener los bares:', error);
       });
   }, []);
 
   const handleSearch = () => {
-    axios.get('http://localhost:3001/api/v1/bars')
-      .then(response => {
-        const filteredBars = response.data.filter(bar =>
-          bar.name.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-        setBars(filteredBars);
-      })
-      .catch(error => {
-        console.error('Error fetching bars:', error);
-      });
+    const results = bars.filter(bar =>
+      bar.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredBars(results);
+  };
+
+  const handleBarClick = (bar) => {
+    setSelectedBar(bar);
+  };
+
+  const handleCloseReview = () => {
+    setSelectedBar(null);
   };
 
   return (
@@ -72,13 +78,38 @@ function BarsList() {
       >
         Buscar
       </Button>
-      <List sx={{ marginTop: '16px' }}>
-        {bars.map((bar) => (
-          <ListItem key={bar.id}>
-            <ListItemText primary={bar.name} secondary={bar.location} />
-          </ListItem>
-        ))}
-      </List>
+      <Box sx={{ marginTop: '16px' }}>
+        {filteredBars.length > 0 ? (
+          filteredBars.map((bar) => (
+            <Container key={bar.id} sx={{ marginBottom: '16px' }}>
+              <Card
+                onClick={() => handleBarClick(bar)}
+                sx={{
+                  cursor: 'pointer',
+                  backgroundColor: 'lightgray',
+                  '&:hover': {
+                    backgroundColor: 'gray',
+                    color: 'white',
+                  },
+                }}
+              >
+                <CardContent>
+                  <Typography variant="h6">{bar.name}</Typography>
+                  <Typography variant="body2">{bar.location}</Typography>
+                </CardContent>
+              </Card>
+            </Container>
+          ))
+        ) : (
+          <Typography variant="body1" color="textSecondary">
+            No se encontraron bares.
+          </Typography>
+        )}
+      </Box>
+      {/* Para mostrar detalles adicionales o un componente de reseña, descomentar */}
+      {/* {selectedBar && (
+        <BarReview bar={selectedBar} onClose={handleCloseReview} />
+      )} */}
     </Box>
   );
 }

@@ -1,15 +1,8 @@
 Rails.application.routes.draw do
-  namespace :api do
-    namespace :v1 do
-      get 'events/show'
-      get 'events/create'
-      get 'events/update'
-      get 'events/destroy'
-    end
-  end
-  # devise_for :users
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
-  get 'current_user', to: 'current_user#index'
+  # Health check route
+  get 'up', to: 'rails/health#show', as: :rails_health_check
+
+  # Devise routes for authentication
   devise_for :users, path: '', path_names: {
     sign_in: 'api/v1/login',
     sign_out: 'api/v1/logout',
@@ -20,23 +13,29 @@ Rails.application.routes.draw do
     registrations: 'api/v1/registrations'
   }
 
-  # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
-  # Can be used by load balancers and uptime monitors to verify that the app is live.
-  get "up" => "rails/health#show", as: :rails_health_check
+  # Custom route for current_user
+  get 'current_user', to: 'current_user#index'
 
-  # Defines the root path route ("/")
-  # root "posts#index"
-
+  # API routes
   namespace :api, defaults: { format: :json } do
     namespace :v1 do
       resources :bars
-      resources :beers
-      resources :users do
-        resources :reviews, only: [:index]
+      resources :beers do
+        resources :reviews, only: [:index, :create] # Anidar reseñas dentro de cervezas
       end
-      
-      resources :reviews, only: [:index, :show, :create, :update, :destroy]
+      resources :users do
+        resources :reviews, only: [:index] # Rutas para reseñas por usuario
+      end
+      resources :reviews, only: [:show, :update, :destroy] # Rutas para acciones específicas de reseñas
+
+      # Custom routes for events
+      get 'events/show'
+      post 'events/create'
+      patch 'events/update'
+      delete 'events/destroy'
     end
   end
 
+  # Defines the root path route ("/")
+  # root "posts#index"
 end
