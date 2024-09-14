@@ -5,7 +5,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   const handleNavigation = (path) => {
     navigate(path);
     toggleSidebar();
@@ -21,7 +21,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     { text: 'Home', path: '/' },
     { text: 'Beers List', path: '/beers' },
     { text: 'Bars List', path: '/bars' },
-    { text: 'Bar Events', path: '/bar/:id/events' },
+    { text: 'Events List', path: '/bar/:id/events' },  // Ruta de eventos
     { text: 'User Search', path: '/search' },
     !localStorage.getItem('token') ? { text: 'Sign Up', path: '/signup' } : null
   ].filter(Boolean);

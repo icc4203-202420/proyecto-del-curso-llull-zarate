@@ -1,19 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Typography, TextField, Button, Box, Card, CardContent, Container } from '@mui/material';
+import { Link } from 'react-router-dom';  // Importar Link para navegación
 import axios from 'axios';
+import Map from './Map';
 
 function BarsList() {
   const [bars, setBars] = useState([]);
   const [filteredBars, setFilteredBars] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedBar, setSelectedBar] = useState(null);
+  const [showMap, setShowMap] = useState(false); // Estado para mostrar/ocultar el mapa
 
   useEffect(() => {
     axios.get('http://localhost:3001/api/v1/bars')
       .then(response => {
-        console.log('Datos de bares:', response.data.bars); 
-        setBars(response.data.bars || []);  
-        setFilteredBars(response.data.bars || []); 
+        setBars(response.data.bars || []);
+        setFilteredBars(response.data.bars || []);
       })
       .catch(error => {
         console.error('Error al obtener los bares:', error);
@@ -25,14 +26,6 @@ function BarsList() {
       bar.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredBars(results);
-  };
-
-  const handleBarClick = (bar) => {
-    setSelectedBar(bar);
-  };
-
-  const handleCloseReview = () => {
-    setSelectedBar(null);
   };
 
   return (
@@ -78,14 +71,26 @@ function BarsList() {
       >
         Buscar
       </Button>
+      <Button
+        variant="contained"
+        sx={{
+          backgroundColor: 'black',
+          color: 'white',
+          '&:hover': {
+            backgroundColor: '#333',
+          },
+          marginTop: '16px',
+        }}
+        onClick={() => setShowMap(!showMap)}  // Toggle map visibility
+      >
+        {showMap ? 'Ocultar Mapa' : 'Ver Mapa'}
+      </Button>
       <Box sx={{ marginTop: '16px' }}>
         {filteredBars.length > 0 ? (
           filteredBars.map((bar) => (
             <Container key={bar.id} sx={{ marginBottom: '16px' }}>
               <Card
-                onClick={() => handleBarClick(bar)}
                 sx={{
-                  cursor: 'pointer',
                   backgroundColor: 'lightgray',
                   '&:hover': {
                     backgroundColor: 'gray',
@@ -96,6 +101,22 @@ function BarsList() {
                 <CardContent>
                   <Typography variant="h6">{bar.name}</Typography>
                   <Typography variant="body2">{bar.location}</Typography>
+                  {/* Añadir botón para ver eventos */}
+                  <Button
+                    component={Link}
+                    to={`/bar/${bar.id}/events`}  // Navega a la ruta de eventos
+                    variant="contained"
+                    sx={{
+                      backgroundColor: 'black',
+                      color: 'white',
+                      '&:hover': {
+                        backgroundColor: '#333',
+                      },
+                      marginTop: '10px',
+                    }}
+                  >
+                    View Events
+                  </Button>
                 </CardContent>
               </Card>
             </Container>
@@ -106,10 +127,7 @@ function BarsList() {
           </Typography>
         )}
       </Box>
-      {/* Para mostrar detalles adicionales o un componente de reseña, descomentar */}
-      {/* {selectedBar && (
-        <BarReview bar={selectedBar} onClose={handleCloseReview} />
-      )} */}
+      {showMap && <Map bars={filteredBars} />}  {/* Mostrar el mapa si showMap es true */}
     </Box>
   );
 }

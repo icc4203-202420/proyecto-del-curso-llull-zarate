@@ -7,21 +7,28 @@ class API::V1::BarsController < ApplicationController
   before_action :verify_jwt_token, only: [:create, :update, :destroy]
 
   def index
-    @bars = Bar.all
+    if params[:name].present?
+      @bars = Bar.where('LOWER(name) LIKE ?', "%#{params[:name].downcase}%")
+    elsif params[:latitude].present? && params[:longitude].present?
+      @bars = Bar.near([params[:latitude], params[:longitude]], 10) # Dentro de un radio de 10 km
+    else
+      @bars = Bar.all
+    end
     render json: { bars: @bars }, status: :ok
   end
 
   def show
     if @bar.image.attached?
-      render json: @bar.as_json.merge({ 
-        image_url: url_for(@bar.image), 
-        thumbnail_url: url_for(@bar.thumbnail) }),
-        status: :ok
+      render json: @bar.as_json.merge({
+        image_url: url_for(@bar.image),
+        thumbnail_url: url_for(@bar.thumbnail),
+        events: @bar.events.as_json(only: [:name, :date, :time])
+      }), status: :ok
     else
-      render json: { bar: @bar.as_json }, status: :ok
+      render json: { bar: @bar.as_json.merge({ events: @bar.events.as_json }) }, status: :ok
     end
   end
-
+  
   def create
     @bar = Bar.new(bar_params.except(:image_base64))
     handle_image_attachment if bar_params[:image_base64]
@@ -43,18 +50,26 @@ class API::V1::BarsController < ApplicationController
     end
   end
 
-  # Método para eliminar un bar existente
   def destroy
     if @bar.destroy
       render json: { message: 'Bar successfully deleted.' }, status: :no_content
     else
       render json: @bar.errors, status: :unprocessable_entity
     end
-  end  
+  end
+
+  def search
+    location = params[:location]
+    if location.present?
+      @bars = Bar.where("LOWER(name) LIKE ?", "%#{location.downcase}%")
+    else
+      @bars = Bar.all
+    end
+    render json: { bars: @bars }
+  end
 
   private
 
-  # Use callbacks to share common setup or constraints between actions.
   def set_bar
     @bar = Bar.find_by(id: params[:id])
     render json: { error: 'Bar not found' }, status: :not_found unless @bar
@@ -70,5 +85,6 @@ class API::V1::BarsController < ApplicationController
   def handle_image_attachment
     decoded_image = decode_image(bar_params[:image_base64])
     @bar.image.attach(io: decoded_image[:io], filename: decoded_image[:filename], content_type: decoded_image[:content_type])
-  end  
+  end
+  
 end

@@ -1,7 +1,7 @@
 class API::V1::EventsController < ApplicationController
   respond_to :json
-  before_action :set_event, only: [:show, :update, :destroy]
-  before_action :verify_jwt_token, only: [:create, :update, :destroy]
+  before_action :set_event, only: [:show, :update, :destroy, :attend_event]
+  before_action :verify_jwt_token, only: [:create, :update, :destroy, :attend_event]
 
   def show
     if @event.image.attached?
@@ -14,7 +14,6 @@ class API::V1::EventsController < ApplicationController
     end
   end
 
-  
   def create
     @event = Event.new(event_params.except(:image_base64))
     @event.user = current_user 
@@ -27,7 +26,6 @@ class API::V1::EventsController < ApplicationController
     end
   end
 
-  
   def update
     handle_image_attachment if event_params[:image_base64]
 
@@ -38,12 +36,21 @@ class API::V1::EventsController < ApplicationController
     end
   end
 
-
   def destroy
     if @event.destroy
       render json: { message: 'Event successfully deleted.' }, status: :no_content
     else
       render json: @event.errors, status: :unprocessable_entity
+    end
+  end
+
+  def attend_event
+    attendance = Attendance.new(user: current_user, event: @event)
+
+    if attendance.save
+      render json: { message: 'You have confirmed your attendance.' }, status: :ok
+    else
+      render json: attendance.errors, status: :unprocessable_entity
     end
   end
 
@@ -68,4 +75,3 @@ class API::V1::EventsController < ApplicationController
     head :unauthorized unless current_user
   end
 end
-

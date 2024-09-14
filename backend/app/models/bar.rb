@@ -1,4 +1,5 @@
 class Bar < ApplicationRecord
+
   belongs_to :address
   has_many :events
   has_many :friendships

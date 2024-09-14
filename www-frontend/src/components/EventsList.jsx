@@ -2,21 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { Typography, Box, List, ListItem, ListItemText } from '@mui/material';
 import axios from 'axios';
 
-function BarEvents({ barId }) {
+function EventsList() {
   const [events, setEvents] = useState([]);
 
   useEffect(() => {
-    if (barId) {
-      axios.get(`http://localhost:3001/api/v1/events/${barId}`) 
-        .then(response => {
-          setEvents(response.data);
-        })
-        .catch(error => {
-          console.error('Error fetching events:', error);
-        });
-    }
-  }, [barId]);
-  
+    axios.get('/api/v1/events')  // Obtener todos los eventos
+      .then(response => {
+        setEvents(response.data.events);
+      })
+      .catch(error => {
+        console.error('Error fetching events:', error);
+      });
+  }, []);
 
   return (
     <Box
@@ -39,17 +36,23 @@ function BarEvents({ barId }) {
           color: 'black',
         }}
       >
-        Eventos Proximos:
+        Todos los Eventos
       </Typography>
       <List sx={{ marginTop: '16px' }}>
-        {events.map((event) => (
-          <ListItem key={event.id}>
-            <ListItemText primary={event.name} secondary={event.date} />
-          </ListItem>
-        ))}
+        {events.length > 0 ? (
+          events.map((event) => (
+            <ListItem key={event.id}>
+              <ListItemText primary={event.name} secondary={`${event.date} - ${event.time}`} />
+            </ListItem>
+          ))
+        ) : (
+          <Typography variant="body1" color="textSecondary">
+            No se encontraron eventos.
+          </Typography>
+        )}
       </List>
     </Box>
   );
 }
 
-export default BarEvents;
+export default EventsList;
