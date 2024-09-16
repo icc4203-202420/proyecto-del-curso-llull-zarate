@@ -22,6 +22,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     { text: 'Beers List', path: '/beers' },
     { text: 'Bars List', path: '/bars' },
     { text: 'Events List', path: '/bar/:id/events' },  // Ruta de eventos
+    { text: 'Bars Search', path: '/bars-search' },
     { text: 'User Search', path: '/search' },
     !localStorage.getItem('token') ? { text: 'Sign Up', path: '/signup' } : null
   ].filter(Boolean);

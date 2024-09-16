@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Typography, TextField, Button, Box, Card, CardContent, Container } from '@mui/material';
-import { Link } from 'react-router-dom';  // Importar Link para navegación
+import { Link } from 'react-router-dom'; 
 import axios from 'axios';
-import Map from './Map';
+import BarsMap from './BarsMap';
 
 function BarsList() {
   const [bars, setBars] = useState([]);
   const [filteredBars, setFilteredBars] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [showMap, setShowMap] = useState(false); // Estado para mostrar/ocultar el mapa
+  const [showMap, setShowMap] = useState(false);
 
   useEffect(() => {
     axios.get('http://localhost:3001/api/v1/bars')
@@ -81,7 +81,7 @@ function BarsList() {
           },
           marginTop: '16px',
         }}
-        onClick={() => setShowMap(!showMap)}  // Toggle map visibility
+        onClick={() => setShowMap(!showMap)}
       >
         {showMap ? 'Ocultar Mapa' : 'Ver Mapa'}
       </Button>
@@ -101,10 +101,9 @@ function BarsList() {
                 <CardContent>
                   <Typography variant="h6">{bar.name}</Typography>
                   <Typography variant="body2">{bar.location}</Typography>
-                  {/* Añadir botón para ver eventos */}
                   <Button
                     component={Link}
-                    to={`/bar/${bar.id}/events`}  // Navega a la ruta de eventos
+                    to={`/bar/${bar.id}/events`}
                     variant="contained"
                     sx={{
                       backgroundColor: 'black',
@@ -115,7 +114,7 @@ function BarsList() {
                       marginTop: '10px',
                     }}
                   >
-                    View Events
+                    Ver Eventos
                   </Button>
                 </CardContent>
               </Card>
@@ -127,7 +126,7 @@ function BarsList() {
           </Typography>
         )}
       </Box>
-      {showMap && <Map bars={filteredBars} />}  {/* Mostrar el mapa si showMap es true */}
+      {showMap && <BarsMap barsData={filteredBars} />}
     </Box>
   );
 }
