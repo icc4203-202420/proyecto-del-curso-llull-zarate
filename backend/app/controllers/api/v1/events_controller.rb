@@ -3,6 +3,11 @@ class API::V1::EventsController < ApplicationController
   before_action :set_event, only: [:show, :update, :destroy, :attend_event]
   before_action :verify_jwt_token, only: [:create, :update, :destroy, :attend_event]
 
+  def index
+    events = Event.all
+    render json: { events: events }, status: :ok
+  end
+
   def show
     if @event.image.attached?
       render json: @event.as_json.merge({ 

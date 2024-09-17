@@ -1,25 +1,30 @@
 Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
+      # Rutas existentes
       resources :events do
-        # Ruta para confirmar asistencia a un evento
         post 'attend', on: :member
       end
+
       resources :bars do
-        # Ruta personalizada para buscar bares
         collection do
           get 'search'
         end
+        resources :events, only: [:index]
       end
+
       resources :beers
       resources :users do
         resources :reviews, only: [:index]
       end
+
       resources :reviews, only: [:index, :show, :create, :update, :destroy]
+
+      # Añadir esta línea para definir las rutas para attendances
+      resources :attendances, only: [:create] 
     end
   end
-  
-  # Devise authentication routes
+
   devise_for :users, path: '', path_names: {
     sign_in: 'api/v1/login',
     sign_out: 'api/v1/logout',
