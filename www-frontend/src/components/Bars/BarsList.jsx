@@ -103,6 +103,21 @@ function BarsList() {
                   <Typography variant="body2">{bar.location}</Typography>
                   <Button
                     component={Link}
+                    to={`/bar/${bar.id}`}
+                    variant="contained"
+                    sx={{
+                      backgroundColor: 'black',
+                      color: 'white',
+                      '&:hover': {
+                        backgroundColor: '#333',
+                      },
+                      marginTop: '10px',
+                    }}
+                  >
+                    Ver Detalles
+                  </Button>
+                  <Button
+                    component={Link}
                     to={`/bar/${bar.id}/events`}
                     variant="contained"
                     sx={{
@@ -112,6 +127,7 @@ function BarsList() {
                         backgroundColor: '#333',
                       },
                       marginTop: '10px',
+                      marginLeft: '10px',
                     }}
                   >
                     Ver Eventos

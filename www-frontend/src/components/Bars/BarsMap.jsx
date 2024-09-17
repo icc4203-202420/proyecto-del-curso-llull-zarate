@@ -12,6 +12,8 @@ const defaultCenter = {
   lng: -70.6344,
 };
 
+const API_KEY = 'AIzaSyCLC2xC1C3WseaoSFx2cy8XN6hpBWKYN6g';
+
 const BarsMap = ({ barsData }) => {
   const [mapInstance, setMapInstance] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -82,7 +84,7 @@ const BarsMap = ({ barsData }) => {
       </Button>
       {isLoading && <CircularProgress />}
       {error && <Typography color="error">{error}</Typography>}
-      <LoadScript googleMapsApiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}>
+      <LoadScript googleMapsApiKey={API_KEY}>
         <GoogleMap
           mapContainerStyle={containerStyle}
           center={currentLocation}

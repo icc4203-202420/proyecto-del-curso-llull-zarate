@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { Typography, Box, List, ListItem, ListItemText, Paper } from '@mui/material';
+import { Typography, Box, List, ListItem, ListItemText, Paper, Button } from '@mui/material';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 
 function EventsList() {
-  const [events, setEvents] = useState([]);
+  const [events, setEvents] = useState([]); // Estado para almacenar eventos
 
   useEffect(() => {
-    axios.get('http://localhost:3001/api/v1/events')
+    axios.get('http://localhost:3001/api/v1/events') // Solicita todos los eventos
       .then(response => {
-        setEvents(response.data.events || []);
+        setEvents(response.data.events || []); // Establece los eventos en el estado
       })
       .catch(error => {
         console.error('Error al obtener los eventos:', error);
@@ -47,14 +48,26 @@ function EventsList() {
                 padding: '16px',
                 backgroundColor: '#fff',
                 boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.1)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
               }}
             >
               <ListItem>
                 <ListItemText
-                  primary={event.name}
-                  secondary={`Fecha: ${event.date}`}
+                  primary={event.name || 'Nombre del Evento'} // Usa un valor por defecto si `event.name` es undefined
+                  secondary={`Fecha: ${new Date(event.date).toLocaleDateString()}`}
                 />
               </ListItem>
+              <Button
+                component={Link}
+                to={`/events/${event.id}`}
+                variant="contained"
+                color="primary"
+                sx={{ marginLeft: '10px' }}
+              >
+                Ver Detalles
+              </Button>
             </Paper>
           ))
         ) : (

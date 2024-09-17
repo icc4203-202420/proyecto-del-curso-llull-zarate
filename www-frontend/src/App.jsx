@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { IconButton } from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
+import './App.css';
 
 import BeersList from './components/Beers/BeersList';
 import BeerDetails from './components/Beers/BeerDetails';
 
 import BarsList from './components/Bars/BarsList';
-import BarsMap from './components/Bars/BarsMap';
+import BarsMap from './components/Bars/BarsMap'; 
+import BarsShow from './components/Bars/BarsShow';
 
 import UserSearch from './components/User/UserSearch';
 
@@ -14,25 +18,21 @@ import Login from './components/Login';
 import SignUp from './components/SignUp';
 import Sidebar from './components/Sidebar';
 
-import { IconButton } from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
-import './App.css';
-
 import EventsList from './components/Events/EventsList';
+import EventsBar from './components/Events/EventsBar';
+import EventsShow from './components/Events/EventsShow';
+import EventsBarShow from './components/Events/EventsBarShow';
 
-import EventsBar from './components/Bars/EventsBar';
-
-// Este componente puede ser usado para proteger rutas que requieren autenticación
 const ProtectedRoute = ({ element, isAuthenticated }) => {
   return isAuthenticated ? element : <Navigate to="/login" />;
 };
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false); // Control de autenticación
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
+    setIsSidebarOpen(prev => !prev);
   };
 
   return (
@@ -65,24 +65,24 @@ function App() {
             <Route path="/beers" element={<BeersList />} />
             <Route path="/beer/:id" element={<BeerDetails />} />
             
-            {/* Agrega la ruta del mapa de bares */}
-            {/* <Route path="/bars/map" element={<BarsMap />} /> */}
             <Route path="/bars" element={<BarsList />} />
-            
+            <Route path="bars-search" element={<BarsMap />} />
+            <Route path="/bar/:id" element={<BarsShow />} />
+
+
+
             <Route path="/bar/:id/events" element={<EventsBar />} />
-      
-            
+            <Route path="/events/:id" element={<EventsShow />} />
             <Route path="/events" element={<EventsList />} />
-
+            
             <Route path="/search" element={<UserSearch />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<SignUp />} />
-
-            {/* Ejemplo de ruta protegida que requiere autenticación */}
+            <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
+            <Route path="/signup" element={<SignUp setIsAuthenticated={setIsAuthenticated} />} />
             <Route 
               path="/profile"
               element={<ProtectedRoute element={<UserSearch />} isAuthenticated={isAuthenticated} />}
             />
+            <Route path="/bar/:barId/events/:eventId" element={<EventsBarShow />} />
           </Routes>
         </main>
       </div>
