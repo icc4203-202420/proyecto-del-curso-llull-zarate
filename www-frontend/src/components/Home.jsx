@@ -1,7 +1,14 @@
 import React from 'react';
 import { Typography, Button, Box } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 
 const Home = () => {
+  const navigate = useNavigate();
+
+  const handleGetStarted = () => {
+    navigate('/signup');
+  };
+
   return (
     <Box
       sx={{
@@ -9,27 +16,29 @@ const Home = () => {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        minHeight: '20vh',
-        backgroundColor: 'white', // Fondo blanco
-        color: 'black', // Color del texto
+        height: '100vh',
+        backgroundColor: 'black',
+        color: 'white',
         textAlign: 'center',
+        padding: 2,
       }}
     >
-      <Typography variant="h2" component="h1" gutterBottom>
-        Welcome to dRINK.IO
+      <Typography variant="h2" gutterBottom>
+        Bienvenido a dRINK.IO
       </Typography>
-      <Typography variant="h5" component="h2" gutterBottom>
-        Your go-to app for beer and bar events
+      <Typography variant="h6" gutterBottom>
+        La mejor aplicación para encontrar las mejores cervezas y bares.
       </Typography>
-      <Button 
-        variant="contained" 
-        sx={{ 
-          mt: 1, 
-          backgroundColor: 'black', // Fondo negro del botón
-          color: 'white', // Texto blanco
+      <Button
+        variant="contained"
+        onClick={handleGetStarted}
+        sx={{
+          backgroundColor: 'white',
+          color: 'black',
           '&:hover': {
-            backgroundColor: 'darkgrey', // Fondo del botón al pasar el ratón (opcional)
-          }
+            backgroundColor: '#f0f0f0',
+          },
+          marginTop: 2,
         }}
       >
         Get Started
