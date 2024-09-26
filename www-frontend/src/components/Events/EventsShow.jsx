@@ -1,127 +1,148 @@
 import React, { useEffect, useState } from 'react';
-import { Typography, Box, Card, CardMedia, CardContent, Button, CircularProgress, Snackbar, Alert } from '@mui/material';
-import axios from 'axios';
+import { Typography, Box, Paper, Button, CircularProgress, Snackbar, Alert } from '@mui/material';
 import { useParams, Link } from 'react-router-dom';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
+import axios from 'axios';
 
 function EventsShow() {
-    const { id } = useParams(); // Extrae el ID de la URL
-    const [event, setEvent] = useState(null);
-    const [checkingIn, setCheckingIn] = useState(false);
-    const [openSnackbar, setOpenSnackbar] = useState(false);
-    const [snackbarType, setSnackbarType] = useState('success');
-    const userId = localStorage.getItem('CURRENT_USER_ID');
+  const { id } = useParams(); // Obtiene el ID del evento desde los parámetros de la ruta
+  const [event, setEvent] = useState(null); // Estado para almacenar el evento
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarType, setSnackbarType] = useState('success');
+  const [isLoading, setIsLoading] = useState(false); // Estado para manejar la carga del check-in
 
-    useEffect(() => {
-        if (id) {
-            axios.get(`http://localhost:3001/api/v1/events/${id}`)
-                .then(response => {
-                    setEvent(response.data);
-                })
-                .catch(error => {
-                    console.error('Error al obtener el evento:', error);
-                });
-        }
-    }, [id]);
-
-    const handleCheckIn = () => {
-        setCheckingIn(true);
-        axios.post('http://localhost:3001/api/v1/attendances', {
-            user_id: userId,
-            event_id: id
-        })
+  useEffect(() => {
+    if (id) {
+      axios.get(`http://localhost:3001/api/v1/events/${id}`) // Solicita los detalles del evento
         .then(response => {
-            setSnackbarType('success');
-            setOpenSnackbar(true);
+          setEvent(response.data.event || null); // Establece el evento en el estado
         })
         .catch(error => {
-            console.error('Error al hacer check-in:', error);
-            setSnackbarType('error');
-            setOpenSnackbar(true);
-        })
-        .finally(() => {
-            setCheckingIn(false);
+          console.error('Error al obtener los detalles del evento:', error);
+          setSnackbarType('error');
+          setOpenSnackbar(true);
         });
-    };
-
-    if (!event) {
-        return <CircularProgress />;
     }
+  }, [id]);
 
+  const handleCheckIn = async () => {
+    setIsLoading(true);
+    const token = localStorage.getItem('token'); // Asegúrate de obtener el token correcto
+    try {
+      const response = await axios.post('http://localhost:3001/api/v1/attendances', {
+        attendance: {
+          event_id: id,
+        },
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`, // Envía el token en el encabezado
+        },
+      });
+      console.log("Check-in successful:", response.data);
+      setSnackbarType('success');
+      setOpenSnackbar(true);
+    } catch (error) {
+      console.error("Error during check-in:", error.response?.data || error.message);
+      setSnackbarType('error');
+      setOpenSnackbar(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (!event) {
     return (
-        <Box sx={{ padding: '20px' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '20px' }}>
-                <Link to="/events">
-                    <ArrowBackIosIcon sx={{ color: 'black', fontSize: '1.5rem' }} />
-                </Link>
-                <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'black' }}>
-                    {event.name}
-                </Typography>
-            </Box>
-
-            <Card sx={{ maxWidth: 345, borderRadius: '16px', boxShadow: '2px 2px 20px rgba(0, 0, 0, 0.4)' }}>
-                <CardMedia
-                    component="img"
-                    height="350"
-                    image={event.image || 'default-image-url'}
-                    alt="Event image"
-                    sx={{ borderRadius: '16px 16px 0 0' }}
-                />
-                <CardContent>
-                    <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                        <LocationOnIcon sx={{ color: 'gray', marginRight: '8px' }} />
-                        {event.location || 'Ubicación no disponible'}
-                    </Typography>
-                    <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', marginTop: '12px' }}>
-                        <AccessTimeIcon sx={{ color: 'gray', marginRight: '8px' }} />
-                        {new Date(event.date).toLocaleDateString('en-US', {
-                            weekday: 'long',
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                        })}
-                    </Typography>
-                    <Typography variant="body2" sx={{ color: 'text.secondary', marginTop: '20px' }}>
-                        {event.description}
-                    </Typography>
-                </CardContent>
-            </Card>
-
-            <Box sx={{ marginTop: '20px' }}>
-                <Button 
-                    variant="outlined" 
-                    size="small" 
-                    onClick={handleCheckIn}
-                    disabled={checkingIn}
-                >
-                    {checkingIn ? <CircularProgress size={24} /> : 'Check-In'}
-                </Button>
-            </Box>
-
-            <Snackbar
-                open={openSnackbar}
-                autoHideDuration={4000}
-                onClose={() => setOpenSnackbar(false)}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-            >
-                <Alert 
-                    onClose={() => setOpenSnackbar(false)} 
-                    severity={snackbarType} 
-                    sx={{ 
-                        width: '100%', 
-                        backgroundColor: snackbarType === 'success' ? '#212121' : '#212121',
-                        color: '#FFFFFF'
-                    }}
-                >
-                    {snackbarType === 'success' 
-                        ? 'Checked-in! You have successfully registered for this event.' 
-                        : 'You are already registered for this event.'}
-                </Alert>
-            </Snackbar>
-        </Box>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '100vh',
+          backgroundColor: '#f5f5f5',
+        }}
+      >
+        <CircularProgress />
+      </Box>
     );
+  }
+
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+        backgroundColor: '#f5f5f5',
+        padding: '40px',
+      }}
+    >
+      <Paper
+        sx={{
+          padding: '20px',
+          maxWidth: '600px',
+          width: '100%',
+          backgroundColor: '#fff',
+          boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.1)',
+        }}
+      >
+        <Typography variant="h4" gutterBottom sx={{ color: '#000' }}>
+          {event.name || 'Nombre del Evento'}
+        </Typography>
+        <Typography variant="body1" sx={{ color: '#000' }}>
+          {event.description || 'Descripción del evento no disponible.'}
+        </Typography>
+        <Typography variant="body2" sx={{ color: '#000', marginTop: '10px' }}>
+          Fecha: {new Date(event.date).toLocaleDateString()}
+        </Typography>
+        {event.start_date && (
+          <Typography variant="body2" sx={{ color: '#000' }}>
+            Inicio: {new Date(event.start_date).toLocaleDateString()}
+          </Typography>
+        )}
+        {event.end_date && (
+          <Typography variant="body2" sx={{ color: '#000' }}>
+            Fin: {new Date(event.end_date).toLocaleDateString()}
+          </Typography>
+        )}
+        <Box sx={{ marginTop: '20px' }}>
+          <Button
+            variant="contained"
+            onClick={handleCheckIn}
+            disabled={isLoading} // Desactiva el botón mientras se está procesando el check-in
+            sx={{ color: '#fff', backgroundColor: '#000', '&:hover': { backgroundColor: '#333' } }} // Estilo del botón
+          >
+            {isLoading ? 'Registrando...' : 'Check In'} {/* Cambia el texto según el estado de carga */}
+          </Button>
+        </Box>
+        <Button
+          component={Link}
+          to={`/events`} // Navega de vuelta a la lista de eventos
+          variant="outlined"
+          sx={{ marginTop: '20px', color: '#000', borderColor: '#000' }} // Botón con borde negro
+        >
+          Volver a Eventos
+        </Button>
+      </Paper>
+
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={4000}
+        onClose={() => setOpenSnackbar(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={() => setOpenSnackbar(false)} 
+          severity={snackbarType} 
+          sx={{ width: '100%', backgroundColor: snackbarType === 'success' ? '#4caf50' : '#f44336', color: '#FFFFFF' }}
+        >
+          {snackbarType === 'success' 
+            ? 'Check-in exitoso.' 
+            : 'Error al realizar el check-in.'}
+        </Alert>
+      </Snackbar>
+    </Box>
+  );
 }
 
 export default EventsShow;

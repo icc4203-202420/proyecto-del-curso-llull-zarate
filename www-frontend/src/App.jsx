@@ -4,6 +4,7 @@ import { IconButton } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import './App.css';
 
+// Importación de componentes
 import BeersList from './components/Beers/BeersList';
 import BeerDetails from './components/Beers/BeerDetails';
 
@@ -23,6 +24,7 @@ import EventsBar from './components/Events/EventsBar';
 import EventsShow from './components/Events/EventsShow';
 import EventsBarShow from './components/Events/EventsBarShow';
 
+// Componente de ruta protegida
 const ProtectedRoute = ({ element, isAuthenticated }) => {
   return isAuthenticated ? element : <Navigate to="/login" />;
 };
@@ -38,6 +40,7 @@ function App() {
   return (
     <Router>
       <div className="App">
+        {/* Componente de la barra lateral */}
         <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
         <main style={{ marginLeft: isSidebarOpen ? 250 : 0, transition: 'margin-left 0.3s' }}>
           <header
@@ -66,14 +69,13 @@ function App() {
             <Route path="/beer/:id" element={<BeerDetails />} />
             
             <Route path="/bars" element={<BarsList />} />
-            <Route path="bars-search" element={<BarsMap />} />
+            <Route path="/bars-search" element={<BarsMap />} />
             <Route path="/bar/:id" element={<BarsShow />} />
-
-
-
+            
             <Route path="/bar/:id/events" element={<EventsBar />} />
-            <Route path="/events/:id" element={<EventsShow />} />
+            <Route path="/bar/:barId/events/:eventId" element={<EventsBarShow />} />
             <Route path="/events" element={<EventsList />} />
+            <Route path="/events/:id" element={<EventsShow />} />
             
             <Route path="/search" element={<UserSearch />} />
             <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
@@ -82,7 +84,6 @@ function App() {
               path="/profile"
               element={<ProtectedRoute element={<UserSearch />} isAuthenticated={isAuthenticated} />}
             />
-            <Route path="/bar/:barId/events/:eventId" element={<EventsBarShow />} />
           </Routes>
         </main>
       </div>

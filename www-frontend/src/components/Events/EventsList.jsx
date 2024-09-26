@@ -4,10 +4,10 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 
 function EventsList() {
-  const [events, setEvents] = useState([]); // Estado para almacenar eventos
+  const [events, setEvents] = useState([]); // Estado para almacenar los eventos
 
   useEffect(() => {
-    axios.get('http://localhost:3001/api/v1/events') // Solicita todos los eventos
+    axios.get('http://localhost:3001/api/v1/events') // Solicita la lista de todos los eventos
       .then(response => {
         setEvents(response.data.events || []); // Establece los eventos en el estado
       })
@@ -32,11 +32,11 @@ function EventsList() {
         variant="h4"
         gutterBottom
         sx={{
-          color: '#333',
+          color: '#000', // Cambiado a negro
           fontWeight: 'bold',
         }}
       >
-        Lista de Eventos
+        Todos los Eventos
       </Typography>
       <List sx={{ width: '100%', maxWidth: '600px' }}>
         {events.length > 0 ? (
@@ -46,7 +46,7 @@ function EventsList() {
               sx={{
                 marginBottom: '10px',
                 padding: '16px',
-                backgroundColor: '#fff',
+                backgroundColor: '#fff', // Fondo blanco para el Paper
                 boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.1)',
                 display: 'flex',
                 justifyContent: 'space-between',
@@ -55,16 +55,23 @@ function EventsList() {
             >
               <ListItem>
                 <ListItemText
-                  primary={event.name || 'Nombre del Evento'} // Usa un valor por defecto si `event.name` es undefined
+                  primary={event.name || 'Nombre del Evento'}
                   secondary={`Fecha: ${new Date(event.date).toLocaleDateString()}`}
+                  sx={{ color: '#000' }} // Texto negro
                 />
               </ListItem>
               <Button
                 component={Link}
                 to={`/events/${event.id}`}
                 variant="contained"
-                color="primary"
-                sx={{ marginLeft: '10px' }}
+                sx={{
+                  backgroundColor: '#000', // Fondo negro para el botón
+                  color: '#fff', // Texto blanco en el botón
+                  '&:hover': {
+                    backgroundColor: '#333', // Fondo gris oscuro al pasar el mouse
+                  },
+                  marginLeft: '10px',
+                }}
               >
                 Ver Detalles
               </Button>

@@ -6,7 +6,6 @@ import axios from 'axios';
 function EventsBar() {
   const { id } = useParams(); // Obtén el ID del bar desde los parámetros de la ruta
   const [events, setEvents] = useState([]); // Estado para almacenar eventos
-  const [attendance, setAttendance] = useState({}); // Estado para el seguimiento de la asistencia
 
   useEffect(() => {
     if (id) {
@@ -19,16 +18,6 @@ function EventsBar() {
         });
     }
   }, [id]);
-
-  const handleCheckIn = (eventId) => {
-    axios.post(`http://localhost:3001/api/v1/attendances`, { event_id: eventId }) // Solicita confirmar la asistencia
-      .then(response => {
-        setAttendance((prevState) => ({ ...prevState, [eventId]: true })); // Actualiza el estado de asistencia
-      })
-      .catch(error => {
-        console.error('Error al hacer check-in:', error);
-      });
-  };
 
   return (
     <Box
@@ -75,21 +64,18 @@ function EventsBar() {
               </ListItem>
               <Button
                 component={Link}
-                to={`/bar/${id}/events/${event.id}`}
+                to={`/bar/${id}/events/${event.id}`} // Navegar a la vista de detalles del evento
                 variant="contained"
-                color="primary"
-                sx={{ marginLeft: '10px' }}
+                sx={{
+                  backgroundColor: '#000',
+                  color: '#fff',
+                  '&:hover': {
+                    backgroundColor: '#333',
+                  },
+                  marginLeft: '10px'
+                }}
               >
                 Ver Detalles
-              </Button>
-              <Button
-                variant="contained"
-                color="secondary"
-                onClick={() => handleCheckIn(event.id)}
-                disabled={attendance[event.id]}
-                sx={{ marginLeft: '10px' }}
-              >
-                {attendance[event.id] ? 'Confirmado' : 'Confirmar Asistencia'}
               </Button>
             </Paper>
           ))

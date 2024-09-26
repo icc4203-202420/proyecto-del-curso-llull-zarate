@@ -70,6 +70,9 @@ const BarsMap = ({ barsData }) => {
         color: 'black',
         textAlign: 'center',
         padding: '20px',
+        border: '1px solid #ccc',
+        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+        borderRadius: '8px',
       }}
     >
       <TextField
@@ -77,9 +80,31 @@ const BarsMap = ({ barsData }) => {
         variant="outlined"
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
-        sx={{ mb: 2, width: '300px' }}
+        sx={{ mb: 2, width: '300px', bgcolor: 'white', '& .MuiOutlinedInput-root': {
+            '& fieldset': {
+              borderColor: 'black',
+            },
+            '&:hover fieldset': {
+              borderColor: 'black',
+            },
+            '&.Mui-focused fieldset': {
+              borderColor: 'black',
+            },
+          } 
+        }}
       />
-      <Button variant="contained" color="primary" onClick={handleGetLocation}>
+      <Button
+        variant="contained"
+        onClick={handleGetLocation}
+        sx={{
+          bgcolor: 'black',
+          color: 'white',
+          '&:hover': {
+            bgcolor: 'gray',
+          },
+          mb: 2,
+        }}
+      >
         Find Bars Near Me
       </Button>
       {isLoading && <CircularProgress />}
@@ -105,7 +130,7 @@ const BarsMap = ({ barsData }) => {
               onCloseClick={() => setSelectedBar(null)}
             >
               <div>
-                <h2>{selectedBar.name}</h2>
+                <h2 style={{ color: 'black' }}>{selectedBar.name}</h2>
               </div>
             </InfoWindow>
           )}

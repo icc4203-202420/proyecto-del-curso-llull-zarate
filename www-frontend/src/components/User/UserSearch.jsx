@@ -1,21 +1,46 @@
-import React from 'react';
-import { Typography, TextField, Button, Box } from '@mui/material';
+import React, { useState } from 'react';
+import { Typography, TextField, Button, Box, List, ListItem, ListItemText } from '@mui/material';
+import axios from 'axios';
 
 function UserSearch() {
+  const [query, setQuery] = useState('');
+  const [users, setUsers] = useState([]);
+  const [error, setError] = useState(null);
+
+  const handleSearch = async () => {
+    try {
+      const response = await axios.get(`/api/v1/friendships/search?query=${query}`);
+      setUsers(response.data.users);
+      setError(null);
+    } catch (err) {
+      setUsers([]);
+      setError('No users found');
+    }
+  };
+
+  const handleAddFriend = async (handle) => {
+    try {
+      await axios.post('/api/v1/friendships', { handle });
+      alert('Friend added successfully!');
+    } catch (err) {
+      alert('Error adding friend');
+    }
+  };
+
   return (
     <Box
       sx={{
         padding: 2,
-        backgroundColor: 'white', // Fondo blanco
-        color: 'black', // Color del texto
-        borderRadius: '8px', // Bordes redondeados
-        boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)', // Sombra sutil
+        backgroundColor: 'white',
+        color: 'black',
+        borderRadius: '8px',
+        boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
       }}
     >
       <Typography
         variant="h4"
         gutterBottom
-        sx={{ color: 'black' }} // Color del texto
+        sx={{ color: 'black' }}
       >
         Buscar Usuarios
       </Typography>
@@ -24,20 +49,40 @@ function UserSearch() {
         variant="outlined"
         fullWidth
         margin="normal"
-        sx={{ marginBottom: '16px' }} // Espaciado inferior
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        sx={{ marginBottom: '16px' }}
       />
       <Button
         variant="contained"
         sx={{
-          backgroundColor: 'black', // Fondo del botón negro
-          color: 'white', // Texto del botón blanco
+          backgroundColor: 'black',
+          color: 'white',
           '&:hover': {
-            backgroundColor: '#333', // Fondo del botón al pasar el mouse
+            backgroundColor: '#333',
           },
         }}
+        onClick={handleSearch}
       >
         Buscar
       </Button>
+
+      {error && <Typography color="error" mt={2}>{error}</Typography>}
+
+      <List>
+        {users.map((user) => (
+          <ListItem key={user.id}>
+            <ListItemText primary={user.handle} />
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => handleAddFriend(user.handle)}
+            >
+              Agregar
+            </Button>
+          </ListItem>
+        ))}
+      </List>
     </Box>
   );
 }

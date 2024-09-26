@@ -2,13 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Typography, TextField, Button, Box, Card, CardContent, Container } from '@mui/material';
 import { Link } from 'react-router-dom'; 
 import axios from 'axios';
-import BarsMap from './BarsMap';
 
 function BarsList() {
   const [bars, setBars] = useState([]);
   const [filteredBars, setFilteredBars] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [showMap, setShowMap] = useState(false);
 
   useEffect(() => {
     axios.get('http://localhost:3001/api/v1/bars')
@@ -72,6 +70,8 @@ function BarsList() {
         Buscar
       </Button>
       <Button
+        component={Link}
+        to="/bars-search"
         variant="contained"
         sx={{
           backgroundColor: 'black',
@@ -81,9 +81,8 @@ function BarsList() {
           },
           marginTop: '16px',
         }}
-        onClick={() => setShowMap(!showMap)}
       >
-        {showMap ? 'Ocultar Mapa' : 'Ver Mapa'}
+        Ver Mapa
       </Button>
       <Box sx={{ marginTop: '16px' }}>
         {filteredBars.length > 0 ? (
@@ -142,7 +141,6 @@ function BarsList() {
           </Typography>
         )}
       </Box>
-      {showMap && <BarsMap barsData={filteredBars} />}
     </Box>
   );
 }
