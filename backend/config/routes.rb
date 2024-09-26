@@ -3,7 +3,7 @@ Rails.application.routes.draw do
     namespace :v1 do
       # Rutas existentes
       resources :events do
-        post 'attend', on: :member
+        post 'attend_event', on: :member
       end
 
       resources :bars do
@@ -16,12 +16,18 @@ Rails.application.routes.draw do
       resources :beers
       resources :users do
         resources :reviews, only: [:index]
+        collection do
+          get 'search', to: 'users#search' # Ruta para buscar usuarios por handle
+        end
       end
 
       resources :reviews, only: [:index, :show, :create, :update, :destroy]
 
+      # Ruta para crear y gestionar amistades
+      resources :friendships, only: [:create, :destroy]
+
       # Añadir esta línea para definir las rutas para attendances
-      resources :attendances, only: [:create] 
+      resources :attendances, only: [:create]
     end
   end
 
