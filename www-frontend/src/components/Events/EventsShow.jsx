@@ -117,11 +117,22 @@ function EventsShow() {
         </Box>
         <Button
           component={Link}
-          to={`/events`} // Navega de vuelta a la lista de eventos
+          to={`/events`} 
           variant="outlined"
-          sx={{ marginTop: '20px', color: '#000', borderColor: '#000' }} // Botón con borde negro
+          sx={{ marginTop: '20px', color: '#000', borderColor: '#000' }} 
         >
-          Volver a Eventos
+          Volver
+        </Button>
+
+        
+    
+        <Button
+          component={Link}
+          to={`/events/${id}/eventgalery`} // Ruta para la galería de fotos del evento
+          variant="outlined"
+          sx={{ marginTop: '20px', color: '#000', borderColor: '#000' }}
+        >
+          Ver Galería
         </Button>
       </Paper>
 

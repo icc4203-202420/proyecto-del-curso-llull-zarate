@@ -17,6 +17,9 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     toggleSidebar(); 
   };
 
+  // Check if the user is authenticated by checking the token in localStorage
+  const isAuthenticated = !!localStorage.getItem('token');
+
   const menuItems = [
     { text: 'Home', path: '/' },
     { text: 'Beers List', path: '/beers' },
@@ -24,10 +27,13 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     { text: 'Events', path: '/events' },  // Ruta de eventos
     { text: 'User Search', path: '/search' },
     
+    // Show "Friends" menu item only if the user is authenticated
+    isAuthenticated ? { text: 'Friends', path: '/friends' } : null,
     
-    !localStorage.getItem('token') ? { text: 'Login', path: '/login' } : null,
-    !localStorage.getItem('token') ? { text: 'Sign Up', path: '/signup' } : null
-  ].filter(Boolean);
+    // Show "Login" and "Sign Up" if the user is not authenticated
+    !isAuthenticated ? { text: 'Login', path: '/login' } : null,
+    !isAuthenticated ? { text: 'Sign Up', path: '/signup' } : null
+  ].filter(Boolean);  // Remove null values from the array
 
   return (
     <Drawer anchor="left" open={isOpen} onClose={toggleSidebar}>
@@ -42,7 +48,8 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             <ListItemText primary={item.text} />
           </ListItem>
         ))}
-        {localStorage.getItem('token') ? (
+
+        {isAuthenticated ? (
           <Button
             onClick={handleLogout}
             variant="contained"

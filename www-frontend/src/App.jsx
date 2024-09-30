@@ -13,6 +13,7 @@ import BarsMap from './components/Bars/BarsMap';
 import BarsShow from './components/Bars/BarsShow';
 
 import UserSearch from './components/User/UserSearch';
+import FriendList from './components/User/FriendList';
 
 import Home from './components/Home';
 import Login from './components/Login';
@@ -23,7 +24,8 @@ import EventsList from './components/Events/EventsList';
 import EventsBar from './components/Events/EventsBar';
 import EventsShow from './components/Events/EventsShow';
 import EventsBarShow from './components/Events/EventsBarShow';
-
+import EventGalery from './components/Events/EventGalery';
+import EventPhoto from './components/Events/EventPhoto';
 // Componente de ruta protegida
 const ProtectedRoute = ({ element, isAuthenticated }) => {
   return isAuthenticated ? element : <Navigate to="/login" />;
@@ -76,8 +78,12 @@ function App() {
             <Route path="/bar/:barId/events/:eventId" element={<EventsBarShow />} />
             <Route path="/events" element={<EventsList />} />
             <Route path="/events/:id" element={<EventsShow />} />
-            
+            <Route path="/events/:id/eventgalery" element={<EventGalery />} />
+            <Route path="/events/:id/eventphoto" element={<EventPhoto />} />
+
             <Route path="/search" element={<UserSearch />} />
+            <Route path="/friends" element={<FriendList />} />
+
             <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
             <Route path="/signup" element={<SignUp setIsAuthenticated={setIsAuthenticated} />} />
             <Route 

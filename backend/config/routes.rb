@@ -23,8 +23,8 @@ Rails.application.routes.draw do
 
       resources :reviews, only: [:index, :show, :create, :update, :destroy]
 
-      # Ruta para crear y gestionar amistades
-      resources :friendships, only: [:create, :destroy]
+      # Añadir :index aquí para permitir GET /api/v1/friendships
+      resources :friendships, only: [:create, :destroy, :index]
 
       # Añadir esta línea para definir las rutas para attendances
       resources :attendances, only: [:create]

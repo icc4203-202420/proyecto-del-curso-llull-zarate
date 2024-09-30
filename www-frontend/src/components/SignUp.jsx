@@ -9,7 +9,6 @@ const SignUp = () => {
     lastName: '',
     email: '',
     handle: '',
-    city: '',
     password: '',
     passwordConfirmation: '',
   });
@@ -29,14 +28,12 @@ const SignUp = () => {
     }
 
     try {
-      
       const response = await axios.post('http://localhost:3001/api/v1/signup', {
         user: { 
           first_name: formData.firstName,
           last_name: formData.lastName,
           email: formData.email,
           handle: formData.handle,
-          city: formData.city,
           password: formData.password,
           password_confirmation: formData.passwordConfirmation,
         }
@@ -100,15 +97,6 @@ const SignUp = () => {
           value={formData.handle}
           onChange={handleChange}
           required
-        />
-        <TextField
-          name="city"
-          label="Ciudad"
-          variant="outlined"
-          margin="normal"
-          fullWidth
-          value={formData.city}
-          onChange={handleChange}
         />
         <TextField
           name="password"
