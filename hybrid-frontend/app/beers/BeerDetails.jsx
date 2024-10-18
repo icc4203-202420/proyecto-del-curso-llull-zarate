@@ -1,94 +1,101 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, Button, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import axios from 'axios';
-import BeerReview from './BeerReview'; // Asegúrate de que la ruta sea correcta
 
 const BeerDetails = ({ route, navigation }) => {
-  const { beerId } = route.params; // Obtener beerId del route params
-  const [beerDetails, setBeerDetails] = useState(null);
-  const [reviews, setReviews] = useState([]);
+  const { id } = route.params;
+  const [beer, setBeer] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Función para obtener detalles de la cerveza y reseñas
-    const fetchBeerDetails = async () => {
-      try {
-        const beerResponse = await axios.get(`http://localhost:3001/api/v1/beers/${beerId}`);
-        const reviewsResponse = await axios.get(`http://localhost:3001/api/v1/beers/${beerId}/reviews`);
+    fetchBeerDetails();
+    const unsubscribe = navigation.addListener('focus', fetchBeerDetails);
+    return unsubscribe;
+  }, [navigation]);
 
-        setBeerDetails(beerResponse.data);
-        setReviews(reviewsResponse.data); // Suponiendo que el endpoint devuelve un array de reseñas
-      } catch (error) {
-        console.error('Error fetching beer details:', error);
-      } finally {
+  const fetchBeerDetails = () => {
+    axios.get(`http://localhost:3001/api/v1/beers/${id}`)
+      .then(response => {
+        setBeer(response.data.beer);
         setLoading(false);
-      }
-    };
-
-    fetchBeerDetails();
-  }, [beerId]);
-
-  const onReviewAdded = () => {
-    // Vuelve a cargar los detalles y reseñas de la cerveza
-    fetchBeerDetails();
+      })
+      .catch(error => {
+        setError(error.message);
+        setLoading(false);
+      });
   };
 
-  const renderReview = ({ item }) => (
-    <View style={styles.reviewContainer}>
-      <Text style={styles.reviewRating}>Calificación: {item.rating}</Text>
-      <Text>{item.text}</Text>
-    </View>
-  );
-
-  if (loading) {
-    return <ActivityIndicator size="large" color="#0000ff" />; // Muestra un loading mientras se obtienen los datos
-  }
+  if (loading) return <ActivityIndicator size="large" color="#000" />;
+  if (error) return <Text style={styles.error}>Error: {error}</Text>;
+  if (!beer) return <Text style={styles.error}>No se encontraron detalles de la cerveza.</Text>;
 
   return (
-    <View style={styles.container}>
-      {beerDetails && (
-        <>
-          <Text style={styles.title}>{beerDetails.name}</Text>
-          <Text>{beerDetails.description}</Text>
+    <ScrollView style={styles.container}>
+      <Text style={styles.title}>{beer.name}</Text>
+      <Text style={styles.subtitle}>Producido Por: {beer.brewery_name || 'No disponible'}</Text>
+      <Text style={styles.subtitle}>Alcohol: {beer.alcohol || 'No disponible'}</Text>
+      <Text style={styles.subtitle}>Amargor (IBU): {beer.ibu || 'No disponible'}</Text>
+      <Text style={styles.subtitle}>Rating Promedio: {beer.averageRating || 'No disponible'}</Text>
 
-          {/* Agregar el botón para ir a BeerReview */}
-          <Button
-            title="Agregar Reseña"
-            onPress={() => navigation.navigate('BeerReview', { beerId, onReviewAdded })}
-          />
-
-          {/* Renderiza las reseñas */}
-          <FlatList
-            data={reviews}
-            renderItem={renderReview}
-            keyExtractor={(item) => item.id.toString()} // Asumiendo que cada reseña tiene un id único
-          />
-        </>
+      <Text style={styles.reviewsTitle}>Reseñas:</Text>
+      {beer.reviews && beer.reviews.length > 0 ? (
+        beer.reviews.map((review, index) => (
+          <View key={index} style={styles.reviewCard}>
+            <Text>Calificación: {review.rating}</Text>
+            <Text>{review.text}</Text>
+          </View>
+        ))
+      ) : (
+        <Text style={styles.noReviews}>No hay reseñas para esta cerveza.</Text>
       )}
-    </View>
+
+      <Button 
+        title="Dejar una Reseña" 
+        onPress={() => navigation.navigate('BeerReview', { beerId: beer.id, onReviewAdded: fetchBeerDetails })} 
+        color="#000" 
+      />
+      <Button title="Volver" onPress={() => navigation.goBack()} color="#000" />
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    padding: 20,
+    padding: 16,
     backgroundColor: '#fff',
   },
   title: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 'bold',
     marginBottom: 10,
+    color: '#000',
   },
-  reviewContainer: {
-    marginVertical: 10,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: '#ddd',
+  subtitle: {
+    fontSize: 18,
+    marginVertical: 6,
+    color: '#000',
   },
-  reviewRating: {
+  reviewsTitle: {
+    fontSize: 20,
     fontWeight: 'bold',
+    marginVertical: 10,
+    color: '#000',
   },
+  reviewCard: {
+    padding: 10,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 6,
+    marginVertical: 8,
+  },
+  noReviews: {
+    fontStyle: 'italic',
+    color: '#000',
+  },
+  error: {
+    color: '#ff0000',
+    fontSize: 16,
+  }
 });
 
 export default BeerDetails;

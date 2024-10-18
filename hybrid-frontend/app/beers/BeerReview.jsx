@@ -1,40 +1,39 @@
 import React, { useState } from 'react';
-import { View, TextInput, Text, Button, StyleSheet } from 'react-native';
+import { View, TextInput, Text, Button, StyleSheet, ActivityIndicator } from 'react-native';
 import { Slider } from 'react-native-elements';
 import axios from 'axios';
 
 const BeerReview = ({ navigation, route }) => {
-  const { beerId, onReviewAdded } = route.params; // Obtener beerId y onReviewAdded del route params
+  const { beerId, onReviewAdded } = route.params;
   const [rating, setRating] = useState(3);
   const [reviewText, setReviewText] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = () => {
-    const characterCount = reviewText.trim().length; // Contamos las letras
+    const wordCount = reviewText.trim().split(/\s+/).length;
 
-    if (characterCount < 15) {
-      setError('La reseña debe tener al menos 15 letras');
+    if (wordCount < 15) {
+      setError('La reseña debe tener al menos 15 palabras');
       return;
     }
 
-    setLoading(true); // Mostrar indicador de carga
+    setLoading(true);
 
-    axios.post(`http://localhost:3001/api/v1/beers/${beerId}/reviews`, { 
+    axios.post(`http://localhost:3001/api/v1/beers/${beerId}/reviews`, {
       review: {
         rating,
         text: reviewText,
       },
     })
     .then(response => {
-      setLoading(false); // Ocultar indicador de carga
-      onReviewAdded(); // Llamar al callback para actualizar los detalles de la cerveza
-      navigation.goBack(); // Volver a la pantalla anterior
+      setLoading(false);
+      onReviewAdded();
+      navigation.goBack();
     })
     .catch(error => {
-      setLoading(false); // Ocultar indicador de carga
+      setLoading(false);
       setError('Error al enviar la evaluación, por favor intenta nuevamente');
-      console.error('Error al enviar la evaluación:', error.response ? error.response.data : error.message);
     });
   };
 
@@ -59,11 +58,11 @@ const BeerReview = ({ navigation, route }) => {
         value={reviewText}
       />
       {error && <Text style={styles.error}>{error}</Text>}
-      <Button 
-        title={loading ? "Enviando..." : "Enviar evaluación"} 
-        onPress={handleSubmit} 
-        disabled={loading} // Desactivar el botón mientras se está enviando
-      />
+      {loading ? (
+        <ActivityIndicator size="large" color="#000" />
+      ) : (
+        <Button title="Enviar evaluación" onPress={handleSubmit} color="#000" />
+      )}
     </View>
   );
 };
@@ -76,16 +75,18 @@ const styles = StyleSheet.create({
   },
   label: {
     marginBottom: 10,
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
+    color: '#000',
   },
   input: {
     height: 100,
-    borderColor: 'gray',
+    borderColor: '#000',
     borderWidth: 1,
     marginBottom: 20,
     padding: 10,
-    textAlignVertical: 'top', 
+    textAlignVertical: 'top',
+    color: '#000',
   },
   error: {
     color: 'red',
