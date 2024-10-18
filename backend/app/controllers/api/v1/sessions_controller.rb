@@ -1,9 +1,10 @@
 class API::V1::SessionsController < Devise::SessionsController
   include ::RackSessionsFix
   respond_to :json
+
   private
+
   def respond_with(current_user, _opts = {})
-   
     render json: {
       status: { 
         code: 200, message: 'Logged in successfully.',
@@ -11,18 +12,24 @@ class API::V1::SessionsController < Devise::SessionsController
       }
     }, status: :ok
   end
+
   def respond_to_on_destroy
     if request.headers['Authorization'].present?
-      jwt_payload = JWT.decode(
-        request.headers['Authorization'].split(' ').last,
-        Rails.application.credentials.devise_jwt_secret_key,
-        true,
-        { algorithm: 'HS256' }
-      ).first
-      current_user = User.find(jwt_payload['sub'])
+      begin
+        jwt_payload = JWT.decode(
+          request.headers['Authorization'].split(' ').last,
+          Rails.application.credentials.devise_jwt_secret_key,
+          true,
+          { algorithm: 'HS256' }
+        ).first
+        current_user = User.find(jwt_payload['sub']) if jwt_payload['sub']
+      rescue JWT::DecodeError
+        return render json: { status: 401, message: "Invalid token." }, status: :unauthorized
+      end
     end
-    
+
     if current_user
+      # Aquí podrías eliminar la sesión si es necesario
       render json: {
         status: 200,
         message: 'Logged out successfully.'

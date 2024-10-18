@@ -1,7 +1,7 @@
 Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
-      # Rutas existentes
+      # Otras rutas
       resources :events do
         post 'attend_event', on: :member
       end
@@ -13,20 +13,19 @@ Rails.application.routes.draw do
         resources :events, only: [:index]
       end
 
-      resources :beers
+      resources :beers do
+        resources :reviews, only: [:index, :create] # Anidar reseñas dentro de cervezas
+      end
+      
       resources :users do
         resources :reviews, only: [:index]
         collection do
-          get 'search', to: 'users#search' # Ruta para buscar usuarios por handle
+          get 'search', to: 'users#search'
+          get 'me', to: 'users#show'
         end
       end
 
-      resources :reviews, only: [:index, :show, :create, :update, :destroy]
-
-      # Añadir :index aquí para permitir GET /api/v1/friendships
       resources :friendships, only: [:create, :destroy, :index]
-
-      # Añadir esta línea para definir las rutas para attendances
       resources :attendances, only: [:create]
     end
   end

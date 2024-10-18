@@ -1,70 +1,93 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, Button, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
 import axios from 'axios';
+import BeerReview from './BeerReview'; // Asegúrate de que la ruta sea correcta
 
 const BeerDetails = ({ route, navigation }) => {
-  const { id } = route.params;
-  const [beer, setBeer] = useState(null);
+  const { beerId } = route.params; // Obtener beerId del route params
+  const [beerDetails, setBeerDetails] = useState(null);
+  const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
-    axios.get(`http://192.168.0.3:3001/api/v1/beers/${id}`)
-      .then(response => {
-        setBeer(response.data.beer);
-        setLoading(false);
-      })
-      .catch(error => {
-        setError(error.message);
-        setLoading(false);
-      });
-  }, [id]);
+    // Función para obtener detalles de la cerveza y reseñas
+    const fetchBeerDetails = async () => {
+      try {
+        const beerResponse = await axios.get(`http://localhost:3001/api/v1/beers/${beerId}`);
+        const reviewsResponse = await axios.get(`http://localhost:3001/api/v1/beers/${beerId}/reviews`);
 
-  if (loading) return <Text>Cargando...</Text>;
-  if (error) return <Text>Error: {error}</Text>;
+        setBeerDetails(beerResponse.data);
+        setReviews(reviewsResponse.data); // Suponiendo que el endpoint devuelve un array de reseñas
+      } catch (error) {
+        console.error('Error fetching beer details:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  if (!beer) return <Text>No se encontraron detalles de la cerveza.</Text>;
+    fetchBeerDetails();
+  }, [beerId]);
+
+  const onReviewAdded = () => {
+    // Vuelve a cargar los detalles y reseñas de la cerveza
+    fetchBeerDetails();
+  };
+
+  const renderReview = ({ item }) => (
+    <View style={styles.reviewContainer}>
+      <Text style={styles.reviewRating}>Calificación: {item.rating}</Text>
+      <Text>{item.text}</Text>
+    </View>
+  );
+
+  if (loading) {
+    return <ActivityIndicator size="large" color="#0000ff" />; // Muestra un loading mientras se obtienen los datos
+  }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{beer.name}</Text>
-      <Text style={styles.subtitle}>Cervecería: {beer.brewery?.name || 'No disponible'}</Text>
-      <Text style={styles.subtitle}>Bares que sirven esta cerveza:</Text>
-      {beer.bars && beer.bars.length > 0 ? (
-        beer.bars.map((bar, index) => (
-          <View key={index} style={styles.barCard}>
-            <Text>{bar.name}</Text>
-            <Text>{bar.address}</Text>
-          </View>
-        ))
-      ) : (
-        <Text>No hay bares que sirvan esta cerveza.</Text>
+      {beerDetails && (
+        <>
+          <Text style={styles.title}>{beerDetails.name}</Text>
+          <Text>{beerDetails.description}</Text>
+
+          {/* Agregar el botón para ir a BeerReview */}
+          <Button
+            title="Agregar Reseña"
+            onPress={() => navigation.navigate('BeerReview', { beerId, onReviewAdded })}
+          />
+
+          {/* Renderiza las reseñas */}
+          <FlatList
+            data={reviews}
+            renderItem={renderReview}
+            keyExtractor={(item) => item.id.toString()} // Asumiendo que cada reseña tiene un id único
+          />
+        </>
       )}
-      <Button title="Dejar una Reseña" onPress={() => navigation.navigate('BeerShow', { beer })} color="#000" />
-      <Button title="Volver" onPress={() => navigation.goBack()} color="#000" />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
+    flex: 1,
+    padding: 20,
     backgroundColor: '#fff',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 8,
+    marginBottom: 10,
   },
-  subtitle: {
-    fontSize: 18,
-    marginVertical: 4,
+  reviewContainer: {
+    marginVertical: 10,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#ddd',
   },
-  barCard: {
-    padding: 8,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 4,
-    marginVertical: 4,
+  reviewRating: {
+    fontWeight: 'bold',
   },
 });
 

@@ -6,6 +6,7 @@ import {
   Button,
   Alert,
   StyleSheet,
+  TouchableOpacity,
 } from 'react-native';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
@@ -18,18 +19,19 @@ const Login = () => {
 
   const handleLogin = async () => {
     try {
-      const response = await axios.post('http://192.168.0.3:3001/api/v1/login', { 
-        user: { 
-          email, 
-          password 
-        }
+      const response = await axios.post('http://localhost:3001/api/v1/login', {
+        user: {
+          email,
+          password,
+        },
       });
 
       if (response.status === 200) {
-        // Guardar el token en el almacenamiento local o AsyncStorage
-        // Aquí puedes usar AsyncStorage para persistir el token
         Alert.alert('Inicio de sesión exitoso', 'Bienvenido!');
-        navigation.navigate('Home'); // Navegar a la pantalla principal
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Home' }], // Redirige a la pantalla principal sin opción de regresar
+        });
       }
     } catch (err) {
       setError('Credenciales incorrectas. Por favor, intenta de nuevo.');
@@ -39,7 +41,7 @@ const Login = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Login</Text>
+      <Text style={styles.title}>Iniciar Sesión</Text>
       <TextInput
         style={styles.input}
         placeholder="Email"
@@ -57,7 +59,13 @@ const Login = () => {
         required
       />
       {error ? <Text style={styles.error}>{error}</Text> : null}
-      <Button title="Login" onPress={handleLogin} color="#000" />
+      <Button title="Iniciar Sesión" onPress={handleLogin} color="#000" />
+      
+      <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
+        <Text style={styles.signUpText}>
+          ¿No tienes cuenta? <Text style={styles.signUpLink}>Regístrate aquí</Text>
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -67,6 +75,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     padding: 16,
+    backgroundColor: '#fff',
   },
   title: {
     fontSize: 24,
@@ -86,6 +95,14 @@ const styles = StyleSheet.create({
     color: 'red',
     marginBottom: 12,
     textAlign: 'center',
+  },
+  signUpText: {
+    marginTop: 20,
+    textAlign: 'center',
+  },
+  signUpLink: {
+    color: '#FF8603', // Color mostaza
+    fontWeight: 'bold',
   },
 });
 

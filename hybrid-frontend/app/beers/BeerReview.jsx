@@ -1,98 +1,95 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, FlatList } from 'react-native';
+import React, { useState } from 'react';
+import { View, TextInput, Text, Button, StyleSheet } from 'react-native';
+import { Slider } from 'react-native-elements';
 import axios from 'axios';
 
-const BeerReview = ({ beer, onClose }) => {
-  const [review, setReview] = useState('');
-  const [rating, setRating] = useState(0);
-  const [reviews, setReviews] = useState([]);
+const BeerReview = ({ navigation, route }) => {
+  const { beerId, onReviewAdded } = route.params; // Obtener beerId y onReviewAdded del route params
+  const [rating, setRating] = useState(3);
+  const [reviewText, setReviewText] = useState('');
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    axios.get(`http://localhost:3001/api/v1/beers/${beer.id}/reviews`)
-      .then(response => {
-        setReviews(response.data.reviews || []);
-      })
-      .catch(error => {
-        console.error('Error fetching reviews:', error);
-      });
-  }, [beer.id]);
+  const handleSubmit = () => {
+    const characterCount = reviewText.trim().length; // Contamos las letras
 
-  const handleSubmitReview = () => {
-    if (review.trim().split(' ').length < 15) {
-      alert('La reseña debe tener al menos 15 palabras.');
+    if (characterCount < 15) {
+      setError('La reseña debe tener al menos 15 letras');
       return;
     }
 
-    if (rating < 1 || rating > 5) {
-      alert('El rating debe estar entre 1 y 5.');
-      return;
-    }
+    setLoading(true); // Mostrar indicador de carga
 
-    const newReview = { text: review, rating };
-
-    axios.post(`http://192.168.0.3:3001/api/v1/beers/${beer.id}/reviews`, newReview)
-      .then(response => {
-        setReviews([...reviews, response.data.review]);
-        setReview('');
-        setRating(0);
-      })
-      .catch(error => {
-        console.error('Error submitting review:', error);
-      });
+    axios.post(`http://localhost:3001/api/v1/beers/${beerId}/reviews`, { 
+      review: {
+        rating,
+        text: reviewText,
+      },
+    })
+    .then(response => {
+      setLoading(false); // Ocultar indicador de carga
+      onReviewAdded(); // Llamar al callback para actualizar los detalles de la cerveza
+      navigation.goBack(); // Volver a la pantalla anterior
+    })
+    .catch(error => {
+      setLoading(false); // Ocultar indicador de carga
+      setError('Error al enviar la evaluación, por favor intenta nuevamente');
+      console.error('Error al enviar la evaluación:', error.response ? error.response.data : error.message);
+    });
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Reseñas de {beer.name}</Text>
+      <Text style={styles.label}>Calificación: {rating.toFixed(1)}</Text>
+      <Slider
+        value={rating}
+        onValueChange={setRating}
+        maximumValue={5}
+        minimumValue={1}
+        step={0.5}
+        thumbTintColor="black"
+        minimumTrackTintColor="gray"
+        maximumTrackTintColor="black"
+      />
       <TextInput
-        style={styles.reviewInput}
-        placeholder="Escribe tu reseña"
-        value={review}
-        onChangeText={setReview}
+        placeholder="Escribe tu evaluación"
+        multiline
+        style={styles.input}
+        onChangeText={setReviewText}
+        value={reviewText}
       />
-      <Button title="Enviar Reseña" onPress={handleSubmitReview} color="#000" />
-      <FlatList
-        data={reviews}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.reviewCard}>
-            <Text>{item.text}</Text>
-            <Text>Rating: {item.rating}</Text>
-          </View>
-        )}
-        ListEmptyComponent={<Text>No hay reseñas aún.</Text>}
+      {error && <Text style={styles.error}>{error}</Text>}
+      <Button 
+        title={loading ? "Enviando..." : "Enviar evaluación"} 
+        onPress={handleSubmit} 
+        disabled={loading} // Desactivar el botón mientras se está enviando
       />
-      <Button title="Cerrar" onPress={onClose} color="#000" />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
+    flex: 1,
+    padding: 20,
     backgroundColor: '#fff',
-    borderRadius: 8,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
   },
-  title: {
-    fontSize: 20,
+  label: {
+    marginBottom: 10,
+    fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 8,
   },
-  reviewInput: {
-    borderColor: '#000',
+  input: {
+    height: 100,
+    borderColor: 'gray',
     borderWidth: 1,
-    padding: 8,
-    marginBottom: 16,
+    marginBottom: 20,
+    padding: 10,
+    textAlignVertical: 'top', 
   },
-  reviewCard: {
-    padding: 8,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 4,
-    marginBottom: 8,
+  error: {
+    color: 'red',
+    marginBottom: 10,
   },
 });
 

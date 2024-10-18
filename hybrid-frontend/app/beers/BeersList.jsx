@@ -8,10 +8,13 @@ const BeersList = ({ navigation }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    axios.get('http://192.168.0.3:3001/api/v1/beers')
+    axios.get('http://localhost:3001/api/v1/beers')
       .then(response => {
-        setBeers(response.data.beers || []);
-        setFilteredBeers(response.data.beers || []);
+        const uniqueBeers = response.data.beers.filter((beer, index, self) => 
+          index === self.findIndex((b) => b.id === beer.id)
+        ); // Eliminar duplicados
+        setBeers(uniqueBeers);
+        setFilteredBeers(uniqueBeers);
       })
       .catch(error => {
         console.error('Error al obtener las cervezas:', error);
@@ -26,7 +29,7 @@ const BeersList = ({ navigation }) => {
   };
 
   const handleBeerClick = (id) => {
-    navigation.navigate('BeerDetails', { id }); 
+    navigation.navigate('BeerDetails', { id });
   };
 
   return (
@@ -49,6 +52,7 @@ const BeersList = ({ navigation }) => {
           </TouchableOpacity>
         )}
         ListEmptyComponent={<Text>No se encontraron cervezas.</Text>}
+        contentContainerStyle={{ paddingBottom: 16 }} // Habilita el scroll
       />
     </View>
   );
@@ -56,7 +60,7 @@ const BeersList = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flex: 1, // Permitir que ocupe toda la pantalla y habilitar scroll
     padding: 16,
     backgroundColor: '#fff',
   },
