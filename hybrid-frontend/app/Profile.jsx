@@ -1,41 +1,20 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Button, StyleSheet } from 'react-native';
+import React from 'react';
+import { View, Text, Button, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
 
 const Profile = () => {
   const navigation = useNavigation();
-  const [user, setUser] = useState({}); // Estado para almacenar la información del usuario
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const JWT_TOKEN = await AsyncStorage.getItem('JWT_TOKEN');
-
-        if (JWT_TOKEN) {
-          const response = await axios.get('http://localhost:3001/api/v1/users/me', { 
-            headers: { Authorization: `Bearer ${JWT_TOKEN}` },
-          });
-          setUser(response.data.user); // Almacena la información del usuario en el estado
-        } else {
-          console.log('No JWT token found');
-        }
-      } catch (error) {
-        console.error('Error fetching user data:', error);
-      }
-    };
-
-    fetchUserData();
-  }, []);
+  const handleLogout = () => {
+    navigation.navigate('Logout');
+  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Mi Perfil</Text>
-      <Text style={styles.info}>Nombre: {user.first_name} {user.last_name}</Text> {/* Cambiado a first_name y last_name */}
-      <Text style={styles.info}>Email: {user.email}</Text>
-      <Text style={styles.info}>Handle: {user.handle}</Text>
-      <Button title="Cerrar Sesión" onPress={() => navigation.navigate('Logout')} color="#FF8603" />
+      <Text style={styles.title}>Perfil</Text>
+      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <Text style={styles.logoutText}>Cerrar Sesión</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -45,20 +24,28 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     justifyContent: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: 'white', // Fondo negro
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: 20,
-    color: '#333',
+    marginBottom: 40,
+    color: '#fff', // Texto blanco
   },
-  info: {
+  logoutButton: {
+    backgroundColor: '#FF8603', // Color del botón
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 3, // Sombra para un efecto 3D
+  },
+  logoutText: {
+    color: '#fff', // Texto blanco
     fontSize: 18,
-    marginVertical: 5,
-    textAlign: 'left',
-    color: '#555',
+    fontWeight: 'bold',
   },
 });
 

@@ -7,13 +7,16 @@ class API::V1::SessionsController < Devise::SessionsController
   def respond_with(current_user, _opts = {})
     render json: {
       status: { 
-        code: 200, message: 'Logged in successfully.',
+        code: 200, 
+        message: 'Logged in successfully.',
         data: { user: UserSerializer.new(current_user).serializable_hash[:data][:attributes] }
       }
     }, status: :ok
   end
 
   def respond_to_on_destroy
+    current_user = nil
+    
     if request.headers['Authorization'].present?
       begin
         jwt_payload = JWT.decode(
@@ -22,14 +25,17 @@ class API::V1::SessionsController < Devise::SessionsController
           true,
           { algorithm: 'HS256' }
         ).first
-        current_user = User.find(jwt_payload['sub']) if jwt_payload['sub']
+        current_user = User.find(jwt_payload['sub'])
       rescue JWT::DecodeError
-        return render json: { status: 401, message: "Invalid token." }, status: :unauthorized
+        render json: {
+          status: 401,
+          message: 'Invalid token. Please log in again.'
+        }, status: :unauthorized and return
       end
     end
-
+    
     if current_user
-      # Aquí podrías eliminar la sesión si es necesario
+      # Aquí puedes agregar lógica para eliminar sesión, si aplica
       render json: {
         status: 200,
         message: 'Logged out successfully.'

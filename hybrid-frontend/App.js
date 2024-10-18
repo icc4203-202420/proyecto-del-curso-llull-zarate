@@ -4,7 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import Home from './app/Home';
 import BeersList from './app/beers/BeersList';
 import BeerDetails from './app/beers/BeerDetails';
-import BeerReview from './app/beers/BeerReview'; // Asegúrate de que la ruta sea correcta
+import BeerReview from './app/beers/BeerReview'; 
 import SignUp from './app/SignUp';
 import Login from './app/Login';
 import Logout from './app/Logout';

@@ -2,6 +2,7 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       # Otras rutas
+
       resources :events do
         post 'attend_event', on: :member
       end
@@ -14,7 +15,7 @@ Rails.application.routes.draw do
       end
 
       resources :beers do
-        resources :reviews, only: [:index, :create] # Anidar reseñas dentro de cervezas
+        resources :reviews, only: [:index, :create]
       end
       
       resources :users do

@@ -3,15 +3,15 @@ import { View, Text, Button, StyleSheet, ScrollView, ActivityIndicator } from 'r
 import axios from 'axios';
 
 const BeerDetails = ({ route, navigation }) => {
-  const { id } = route.params; // Obtenemos el id de la cerveza
+  const { id } = route.params;
   const [beer, setBeer] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchBeerDetails();
-    const unsubscribe = navigation.addListener('focus', fetchBeerDetails); // Recargar detalles cuando la pantalla está enfocada
-    return unsubscribe; // Limpiar el listener
+    const unsubscribe = navigation.addListener('focus', fetchBeerDetails);
+    return unsubscribe;
   }, [navigation]);
 
   const fetchBeerDetails = () => {
@@ -26,9 +26,9 @@ const BeerDetails = ({ route, navigation }) => {
       });
   };
 
-  if (loading) return <ActivityIndicator size="large" color="#0000ff" />;
-  if (error) return <Text>Error: {error}</Text>;
-  if (!beer) return <Text>No se encontraron detalles de la cerveza.</Text>;
+  if (loading) return <ActivityIndicator size="large" color="#000" />;
+  if (error) return <Text style={styles.error}>Error: {error}</Text>;
+  if (!beer) return <Text style={styles.error}>No se encontraron detalles de la cerveza.</Text>;
 
   return (
     <ScrollView style={styles.container}>
@@ -38,19 +38,23 @@ const BeerDetails = ({ route, navigation }) => {
       <Text style={styles.subtitle}>Amargor (IBU): {beer.ibu || 'No disponible'}</Text>
       <Text style={styles.subtitle}>Rating Promedio: {beer.averageRating || 'No disponible'}</Text>
 
-      <Text style={styles.subtitle}>Bares que sirven esta cerveza:</Text>
-      {beer.bars && beer.bars.length > 0 ? (
-        beer.bars.map((bar, index) => (
-          <View key={index} style={styles.barCard}>
-            <Text>{bar.name}</Text>
-            <Text>{bar.address}</Text>
+      <Text style={styles.reviewsTitle}>Reseñas:</Text>
+      {beer.reviews && beer.reviews.length > 0 ? (
+        beer.reviews.map((review, index) => (
+          <View key={index} style={styles.reviewCard}>
+            <Text>Calificación: {review.rating}</Text>
+            <Text>{review.text}</Text>
           </View>
         ))
       ) : (
-        <Text>No hay bares que sirvan esta cerveza.</Text>
+        <Text style={styles.noReviews}>No hay reseñas para esta cerveza.</Text>
       )}
-      
-      <Button title="Dejar una Reseña" onPress={() => navigation.navigate('BeerReview', { beerId: beer.id, onReviewAdded: fetchBeerDetails })} color="#000" />
+
+      <Button 
+        title="Dejar una Reseña" 
+        onPress={() => navigation.navigate('BeerReview', { beerId: beer.id, onReviewAdded: fetchBeerDetails })} 
+        color="#000" 
+      />
       <Button title="Volver" onPress={() => navigation.goBack()} color="#000" />
     </ScrollView>
   );
@@ -62,20 +66,36 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   title: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 'bold',
-    marginBottom: 8,
+    marginBottom: 10,
+    color: '#000',
   },
   subtitle: {
     fontSize: 18,
-    marginVertical: 4,
+    marginVertical: 6,
+    color: '#000',
   },
-  barCard: {
-    padding: 8,
+  reviewsTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginVertical: 10,
+    color: '#000',
+  },
+  reviewCard: {
+    padding: 10,
     backgroundColor: '#f5f5f5',
-    borderRadius: 4,
-    marginVertical: 4,
+    borderRadius: 6,
+    marginVertical: 8,
   },
+  noReviews: {
+    fontStyle: 'italic',
+    color: '#000',
+  },
+  error: {
+    color: '#ff0000',
+    fontSize: 16,
+  }
 });
 
 export default BeerDetails;
