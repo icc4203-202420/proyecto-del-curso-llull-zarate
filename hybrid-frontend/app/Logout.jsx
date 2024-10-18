@@ -8,51 +8,28 @@ const Logout = () => {
   const navigation = useNavigation();
 
   const handleLogout = async () => {
-    Alert.alert(
-      "Confirm Logout",
-      "Are you sure you want to log out?",
-      [
-        {
-          text: "Cancel",
-          onPress: () => console.log("Logout cancelled"),
-          style: "cancel",
-        },
-        {
-          text: "Log Out",
-          onPress: async () => {
-            try {
-              const JWT_TOKEN = await AsyncStorage.getItem('JWT_TOKEN');
-              console.log('JWT_TOKEN:', JWT_TOKEN); // Verificar el token
+    try {
+      const JWT_TOKEN = await AsyncStorage.getItem('JWT_TOKEN');
 
-              if (!JWT_TOKEN) {
-                Alert.alert('Error', 'No token found, please log in again.');
-                return;
-              }
+      if (!JWT_TOKEN) {
+        Alert.alert('Error', 'No token found, please log in again.');
+        return;
+      }
 
-              const response = await axios.delete('http://localhost:3001/api/v1/logout', {
-                headers: { Authorization: `Bearer ${JWT_TOKEN}` },
-              });
+      await axios.delete('http://localhost:3001/api/v1/logout', {
+        headers: { Authorization: `${JWT_TOKEN}` }, 
+      });
 
-              console.log('Logout response:', response.data); // Verifica la respuesta
+      // Eliminar JWT_TOKEN y CURRENT_USER_ID del AsyncStorage
+      await AsyncStorage.removeItem('JWT_TOKEN');
+      await AsyncStorage.removeItem('CURRENT_USER_ID');
 
-              await AsyncStorage.removeItem('JWT_TOKEN');
-              await AsyncStorage.removeItem('CURRENT_USER_ID');
-
-              Alert.alert('Logged out successfully!', '', [
-                {
-                  text: 'OK',
-                  onPress: () => navigation.navigate('Login'),
-                },
-              ]);
-            } catch (error) {
-              console.error('Error logging out:', error);
-              Alert.alert('Error', `Failed to log out. ${error.response ? error.response.data.message : error.message}`);
-            }
-          },
-        },
-      ],
-      { cancelable: false }
-    );
+      Alert.alert('Logged out successfully!');
+      navigation.navigate('Login');
+    } catch (error) {
+      console.error('Error logging out:', error);
+      Alert.alert('Error', 'Failed to log out.');
+    }
   };
 
   return (

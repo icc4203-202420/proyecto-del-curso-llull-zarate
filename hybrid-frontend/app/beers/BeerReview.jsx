@@ -11,10 +11,10 @@ const BeerReview = ({ navigation, route }) => {
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = () => {
-    const characterCount = reviewText.trim().length; // Contamos las letras
+    const wordCount = reviewText.trim().length; // Contamos las letras
 
-    if (characterCount < 15) {
-      setError('La reseña debe tener al menos 15 letras');
+    if (wordCount < 15) {
+      setError('La reseña debe tener al menos 15 palabras');
       return;
     }
 
