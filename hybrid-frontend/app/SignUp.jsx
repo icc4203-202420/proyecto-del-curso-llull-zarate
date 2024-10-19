@@ -26,7 +26,7 @@ const SignUp = () => {
       return;
     }
 
-    axios.post('http://192.168.0.3:3001/api/v1/signup', { // Cambia a la IP correcta
+    axios.post('http://localhost:3001/api/v1/signup', { // Cambia a la IP correcta
       user: {
         first_name: firstName,
         last_name: lastName,
