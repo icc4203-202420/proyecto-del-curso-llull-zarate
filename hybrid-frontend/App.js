@@ -2,13 +2,24 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Home from './app/Home';
+
 import BeersList from './app/beers/BeersList';
-import BeerDetails from './app/beers/BeerDetails';
-import BeerReview from './app/beers/BeerReview'; // Asegúrate de que la ruta sea correcta
+import BeerDetailScreen from './app/beers/BeerDetailScreen';
+
 import SignUp from './app/SignUp';
 import Login from './app/Login';
 import Logout from './app/Logout';
 import Profile from './app/Profile';
+
+import BarsList from './app/bars/BarsList';
+import BarDetailScreen from './app/bars/BarDetailScreen';
+
+import FriendIndex from './app/users/FriendIndex';
+import FriendList from './app/users/FriendList';
+
+import EventList from './app/events/EventList';
+import EventIndex from './app/events/EventIndex';
+import EventShow from './app/events/EventShow'
 
 const Stack = createStackNavigator();
 
@@ -22,8 +33,15 @@ const App = () => {
         <Stack.Screen name="Logout" component={Logout} />
         <Stack.Screen name="Home" component={Home} />
         <Stack.Screen name="BeersList" component={BeersList} />
-        <Stack.Screen name="BeerDetails" component={BeerDetails} />
-        <Stack.Screen name="BeerReview" component={BeerReview} /> 
+        <Stack.Screen name="BeerDetailScreen" component={BeerDetailScreen} /> 
+        <Stack.Screen name="BarsList" component={BarsList} />
+        <Stack.Screen name="BarDetailScreen" component={BarDetailScreen} />
+        <Stack.Screen name="FriendIndex" component={FriendIndex} />
+        <Stack.Screen name="FriendList" component={FriendList} />
+        <Stack.Screen name="EventList" component={EventList} />
+        <Stack.Screen name="EventIndex" component={EventIndex} />
+        <Stack.Screen name="EventShow" component={EventShow} />
+
       </Stack.Navigator>
     </NavigationContainer>
   );

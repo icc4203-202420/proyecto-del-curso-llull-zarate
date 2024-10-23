@@ -30,10 +30,19 @@ const Home = ({ navigation }) => {
 
       <TouchableOpacity
         style={styles.button}
-        onPress={() => navigation.navigate('EventsList')}
+        onPress={() => navigation.navigate('EventList')}
       >
         <Text style={styles.buttonText}>Events</Text>
       </TouchableOpacity>
+      
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.navigate('FriendIndex')}
+      >
+        <Text style={styles.buttonText}>Friends</Text>
+      </TouchableOpacity>
+
+       
     </View>
   );
 };

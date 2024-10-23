@@ -1,44 +1,101 @@
-# app/controllers/api/v1/friendships_controller.rb
 class API::V1::FriendshipsController < ApplicationController
-  before_action :verify_jwt_token
-  before_action :find_user_by_handle, only: [:create]
+  before_action :set_user
 
-  # POST /api/v1/friendships
-  def create
-    friendship = Friendship.new(user: current_user, friend: @friend)
+  # GET /api/v1/users/:user_id/friendships
+  def index
+    @friendships = Friendship.includes(:friend).where(user_id: @user.id)
 
-    if friendship.save
-      render json: { message: 'Friend added successfully.' }, status: :created
+    friends_data = @friendships.map do |friendship|
+      {
+        id: friendship.friend.id,
+        name: "#{friendship.friend.first_name} #{friendship.friend.last_name}",
+        email: friendship.friend.email,
+        handle: friendship.friend.handle
+      }
+    end
+
+    render json: { friends: friends_data }, status: :ok
+  end
+
+  # GET /api/v1/users/:user_id/friendships/:friend_id
+  def show
+    friend = User.find_by(id: params[:friend_id])
+
+    if friend.nil?
+      return render json: { error: "Friend not found" }, status: :not_found
+    end
+
+    friendship = Friendship.find_by(user_id: @user.id, friend_id: friend.id)
+
+    if friendship
+      render json: {
+        is_friend: true,
+        friendship: {
+          friend_id: friendship.friend_id,
+          event_id: friendship.event_id 
+        }
+      }, status: :ok
     else
-      render json: friendship.errors.full_messages, status: :unprocessable_entity
+      render json: { is_friend: false }, status: :ok
     end
   end
 
-  # GET /api/v1/friendships
-  def index
-    friendships = current_user.friendships.includes(:friend) # Asegúrate de que tienes la asociación
-    render json: friendships.map { |f| { id: f.friend.id, handle: f.friend.handle, name: f.friend.name } }
+  # POST /api/v1/users/:user_id/friendships
+  def create
+    friend = User.find_by(id: friendship_params[:friend_id])
+
+    # Si no existe el amigo
+    if friend.nil?
+      render json: { error: "Friend not found" }, status: :not_found
+      return
+    end
+
+    # Si ya son amigos
+    if @user.friendships.exists?(friend: friend)
+      render json: { error: "Already friends" }, status: :unprocessable_entity
+      return
+    end
+
+    # Si es una nueva amistad
+    @friendship = @user.friendships.build(friendship_params)
+
+    if @friendship.save
+      render json: @friendship, status: :created
+    else
+      render json: @friendship.errors, status: :unprocessable_entity
+    end
   end
 
-  # GET /api/v1/friendships/search
-  def search
-    users = User.where("handle LIKE ?", "%#{params[:query]}%")
-    if users.any?
-      render json: { users: users }, status: :ok
+  # PATCH /api/v1/users/:user_id/friendships/:friend_id
+  def update
+    friend = User.find_by(id: params[:friend_id])
+
+    if friend.nil?
+      render json: { error: "Friend not found" }, status: :not_found
+      return
+    end
+
+    friendship = Friendship.find_by(user_id: @user.id, friend_id: friend.id)
+
+    if friendship.nil?
+      render json: { error: "Friendship not found" }, status: :not_found
+      return
+    end
+
+    if friendship.update(friendship_params)
+      render json: friendship, status: :ok
     else
-      render json: { message: 'No users found.' }, status: :not_found
+      render json: friendship.errors, status: :unprocessable_entity
     end
   end
 
   private
 
-  def find_user_by_handle
-    @friend = User.find_by(handle: params[:handle])
-    render json: { error: 'User not found' }, status: :not_found unless @friend
+  def set_user
+    @user = User.find(params[:user_id])
   end
 
-  def verify_jwt_token
-    authenticate_user!
-    render json: { error: 'Unauthorized' }, status: :unauthorized unless current_user
+  def friendship_params
+    params.require(:friendship).permit(:friend_id, :bar_id, :event_id)
   end
 end

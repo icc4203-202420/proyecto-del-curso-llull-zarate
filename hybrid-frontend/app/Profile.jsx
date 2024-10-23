@@ -29,12 +29,25 @@ const Profile = () => {
     fetchUserData();
   }, []);
 
+  // Maneja los datos opcionales (si faltan valores, puedes mostrar mensajes predeterminados o simplemente omitir el texto)
+  const renderUserName = () => {
+    if (user.first_name || user.last_name) {
+      return (
+        <Text style={styles.info}>Nombre: {user.first_name || ''} {user.last_name || ''}</Text>
+      );
+    } else if (user.handle) {
+      return <Text style={styles.info}>Handle: {user.handle}</Text>;
+    } else {
+      return <Text style={styles.info}>Usuario sin nombre disponible</Text>;
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Mi Perfil</Text>
-      <Text style={styles.info}>Nombre: {user.first_name} {user.last_name}</Text> {/* Cambiado a first_name y last_name */}
-      <Text style={styles.info}>Email: {user.email}</Text>
-      <Text style={styles.info}>Handle: {user.handle}</Text>
+      {renderUserName()}
+      {user.email && <Text style={styles.info}>Email: {user.email}</Text>}
+      {user.handle && <Text style={styles.info}>Handle: {user.handle}</Text>}
       <Button title="Cerrar Sesión" onPress={() => navigation.navigate('Logout')} color="#FF8603" />
     </View>
   );

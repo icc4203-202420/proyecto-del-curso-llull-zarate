@@ -94,7 +94,7 @@ const SignUp = () => {
       />
       <TextInput
         style={styles.input}
-        placeholder="Handle"
+        placeholder="Handle: (For example @kingofbeers)"
         value={handle}
         onChangeText={setHandle}
       />

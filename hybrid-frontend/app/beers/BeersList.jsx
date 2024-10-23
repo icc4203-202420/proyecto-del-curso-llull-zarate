@@ -1,18 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, FlatList, Text, StyleSheet } from 'react-native';
 import axios from 'axios';
+import BeerCard from './BeerCard'; 
+import SearchBeer from './SearchBeer'; 
+import { useNavigation } from '@react-navigation/native';
 
-const BeersList = ({ navigation }) => {
+const BeersList = () => {
   const [beers, setBeers] = useState([]);
   const [filteredBeers, setFilteredBeers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const navigation = useNavigation();
 
   useEffect(() => {
     axios.get('http://localhost:3001/api/v1/beers')
       .then(response => {
         const uniqueBeers = response.data.beers.filter((beer, index, self) => 
           index === self.findIndex((b) => b.id === beer.id)
-        ); // Eliminar duplicados
+        ); 
         setBeers(uniqueBeers);
         setFilteredBeers(uniqueBeers);
       })
@@ -29,30 +33,27 @@ const BeersList = ({ navigation }) => {
   };
 
   const handleBeerClick = (id) => {
-    navigation.navigate('BeerDetails', { id });
+    navigation.navigate('BeerDetailScreen', { id });
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Lista de Cervezas</Text>
-      <TextInput
-        style={styles.searchInput}
-        placeholder="Buscar cervezas"
-        value={searchTerm}
-        onChangeText={setSearchTerm}
+      <SearchBeer 
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        onSearchSubmit={handleSearch}
       />
-      <Button title="Buscar" onPress={handleSearch} color="#000" />
       <FlatList
         data={filteredBeers}
         keyExtractor={(beer) => beer.id.toString()}
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.card} onPress={() => handleBeerClick(item.id)}>
-            <Text style={styles.cardTitle}>{item.name}</Text>
-            <Text style={styles.cardSubtitle}>{item.brewery?.name}</Text>
-          </TouchableOpacity>
+          <BeerCard
+            beer={item}
+            onPress={() => handleBeerClick(item.id)}
+          />
         )}
-        ListEmptyComponent={<Text>No se encontraron cervezas.</Text>}
-        contentContainerStyle={{ paddingBottom: 16 }} // Habilita el scroll
+        ListEmptyComponent={<Text style={styles.noBeers}>No se encontraron cervezas.</Text>}
+        contentContainerStyle={{ paddingBottom: 16 }} 
       />
     </View>
   );
@@ -60,40 +61,15 @@ const BeersList = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1, // Permitir que ocupe toda la pantalla y habilitar scroll
+    flex: 1,
     padding: 16,
     backgroundColor: '#fff',
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#000',
+  noBeers: {
     textAlign: 'center',
-    marginBottom: 16,
-  },
-  searchInput: {
-    borderColor: '#000',
-    borderWidth: 1,
-    padding: 8,
-    marginBottom: 16,
-  },
-  card: {
-    padding: 16,
-    backgroundColor: '#f5f5f5',
-    marginVertical: 8,
-    borderRadius: 8,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  cardSubtitle: {
-    fontSize: 14,
-    color: 'gray',
+    fontSize: 16,
+    color: '#888',
+    marginVertical: 20,
   },
 });
 

@@ -8,11 +8,15 @@ class API::V1::UsersController < ApplicationController
   end
 
   def show
-    render json: {
-      user: @user,
-      friends: @user.friends,
-      inverse_friends: @user.inverse_friends
-    }, status: :ok
+    if @user
+      render json: {
+        user: @user.as_json(only: [:id, :first_name, :last_name, :email, :handle]), # Mostramos solo los atributos necesarios
+        friends: @user.friends, # Asegúrate de que `friends` esté bien definido en el modelo
+        inverse_friends: @user.inverse_friends # Lo mismo con `inverse_friends`
+      }, status: :ok
+    else
+      render json: { error: "Usuario no encontrado" }, status: :not_found
+    end
   end
 
   def create
@@ -34,9 +38,10 @@ class API::V1::UsersController < ApplicationController
 
   private
 
+  # Obtiene al usuario actual si params[:id] es 'me', de lo contrario busca por ID
   def set_user
     if params[:id] == 'me'
-      @user = current_user # Asegúrate de que current_user esté definido en tu módulo de autenticación
+      @user = current_user # Obtiene el usuario actual a partir del token
       render json: { error: 'Usuario no encontrado' }, status: :not_found unless @user
     else
       @user = User.find_by(id: params[:id])
@@ -45,12 +50,9 @@ class API::V1::UsersController < ApplicationController
   end
 
   def user_params
-    params.fetch(:user, {}).permit(
-      :id, :first_name, :last_name, :email, :age, :handle, :password,
-      address_attributes: [
-        :id, :line1, :line2, :city, :country, :country_id,
-        country_attributes: [:id, :name]
-      ],
+    params.require(:user).permit(
+      :first_name, :last_name, :email, :age, :handle, :password,
+      address_attributes: [:id, :line1, :line2, :city, :country, :country_id],
       reviews_attributes: [:id, :text, :rating, :beer_id, :_destroy]
     )
   end
