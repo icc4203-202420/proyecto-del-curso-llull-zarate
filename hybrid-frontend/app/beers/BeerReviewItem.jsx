@@ -22,7 +22,8 @@ const BeerReviewItem = ({ review }) => (
         tintColor="#fff"
       />
       <Text style={styles.rating}>{parseFloat(review.rating).toFixed(1)}</Text>
-      <Text style={styles.date}>• {new Date(review.created_at).toLocaleDateString()}</Text>
+      <Text style={styles.date}>• 
+        {new Date(review.created_at).toLocaleDateString()}</Text>
     </View>
     <Text style={styles.reviewText}>{review.text}</Text>
   </View>

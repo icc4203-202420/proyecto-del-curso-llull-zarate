@@ -1,32 +1,24 @@
-//omponente se encargará de mostrar la información principal de la cerveza.
-
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-const BeerInfo = ({ beer }) => {
-  return (
-    <View>
-      <Text style={styles.title}>{beer.name}</Text>
-      <Text style={styles.subtitle}>Producido Por: {beer.brewery_name || 'No disponible'}</Text>
-      <Text style={styles.subtitle}>Alcohol: {beer.alcohol || 'No disponible'}</Text>
-      <Text style={styles.subtitle}>Amargor (IBU): {beer.ibu || 'No disponible'}</Text>
-      <Text style={styles.subtitle}>Rating Promedio: {beer.averageRating || 'No disponible'}</Text>
-    </View>
-  );
-};
+const BeerInfo = ({ beer }) => (
+  <View style={styles.container}>
+    <Text style={styles.name}>{beer.name}</Text>
+    <Text>Producido Por: {beer.producer}</Text>
+    <Text>Alcohol: {beer.alcohol}%</Text>
+    <Text>Amargor (IBU): {beer.ibu}</Text>
+    <Text>Rating Promedio: {beer.average_rating || 'No disponible'}</Text>
+  </View>
+);
 
 const styles = StyleSheet.create({
-  title: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#000',
+  container: {
+    marginBottom: 20,
   },
-  subtitle: {
-    fontSize: 18,
-    marginVertical: 6,
-    color: '#000',
-  }
+  name: {
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
 });
 
 export default BeerInfo;

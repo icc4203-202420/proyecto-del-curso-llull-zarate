@@ -21,28 +21,34 @@ class API::V1::BeersController < ApplicationController
 
   # GET /beers/:id
   # Para poder acceder a los bars, brands y brewery relacionados con la cerveza en BeersShow.jsx
-  def show
-    @beer = Beer.includes(brand: :brewery).find(params[:id])
-    @brewery = @beer.brand.brewery
-    @bars = BarsBeer.where(beer_id: @beer.id).includes(:bar)
-    @reviews = @beer.reviews
+  # GET /beers/:id
+def show
+  @beer = Beer.includes(brand: :brewery).find(params[:id])
+  @brewery = @beer.brand.brewery
+  @bars = BarsBeer.where(beer_id: @beer.id).includes(:bar)
+  @reviews = @beer.reviews
 
-    beer_data = @beer.as_json.merge({
-      brand_name: @beer.brand.name,
-      brewery_name: @brewery.name,
-      bar_names: @bars.map { |bars_beer| bars_beer.bar.name },
-      reviews: @reviews.as_json(only: [:id, :text, :rating, :user_id])
+  # Calcular o incluir avg_rating
+  avg_rating = @beer.avg_rating || @reviews.average(:rating).to_f.round(1)
+
+  beer_data = @beer.as_json.merge({
+    brand_name: @beer.brand.name,
+    brewery_name: @brewery.name,
+    bar_names: @bars.map { |bars_beer| bars_beer.bar.name },
+    avg_rating: avg_rating, # Incluye el avg_rating en la respuesta
+    reviews: @reviews.as_json(only: [:id, :text, :rating, :user_id])
+  })
+
+  if @beer.image.attached?
+    beer_data.merge!({
+      image_url: url_for(@beer.image),
+      thumbnail_url: url_for(@beer.thumbnail)
     })
-
-    if @beer.image.attached?
-      beer_data.merge!({
-        image_url: url_for(@beer.image),
-        thumbnail_url: url_for(@beer.thumbnail)
-      })
-    end
-
-    render json: { beer: beer_data }, status: :ok
   end
+
+  render json: { beer: beer_data }, status: :ok
+end
+
 
   # POST /beers
   def create

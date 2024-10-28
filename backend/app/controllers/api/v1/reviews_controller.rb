@@ -1,15 +1,14 @@
 class API::V1::ReviewsController < ApplicationController
   respond_to :json
-  before_action :set_user, only: [:index, :create], if: -> { params[:user_id].present? }
+  before_action :set_user, only: [:create]
   before_action :set_review, only: [:show, :update, :destroy]
-  before_action :set_beer, only: [:index], if: -> { params[:beer_id].present? }
-
+  before_action :set_beer, only: [:index, :create]
 
   def index
-    if @user
-      @reviews = Review.where(user: @user)
-    elsif @beer
-      @reviews = Review.where(beer: @beer)
+    if @beer
+      @reviews = @beer.reviews.includes(:user)
+    elsif @user
+      @reviews = @user.reviews
     else
       @reviews = Review.all
     end
@@ -21,7 +20,6 @@ class API::V1::ReviewsController < ApplicationController
     }, status: :ok
   end
 
-
   def show
     if @review
       render json: { review: @review }, status: :ok
@@ -31,13 +29,19 @@ class API::V1::ReviewsController < ApplicationController
   end
 
   def create
-    @review = @user.reviews.build(review_params)
-    if @review.save
-      render json: @review, status: :created, location: api_v1_review_url(@review)
+    if @user && @beer
+      @review = @beer.reviews.build(review_params.merge(user: @user))
+      if @review.save
+        render json: @review.as_json(include: { user: { only: [:handle, :email] } }), status: :created
+      else
+        render json: { errors: @review.errors.full_messages }, status: :unprocessable_entity
+      end
     else
-      render json: @review.errors, status: :unprocessable_entity
+      render json: { error: "User or Beer not found" }, status: :not_found
     end
   end
+  
+
 
   def update
     if @review.update(review_params)
@@ -60,7 +64,8 @@ class API::V1::ReviewsController < ApplicationController
   end
 
   def set_user
-    @user = User.find(params[:user_id])
+    @user = User.find_by(id: params[:user_id])
+    render json: { error: "User not found" }, status: :not_found unless @user
   end
 
   def set_beer
@@ -69,6 +74,6 @@ class API::V1::ReviewsController < ApplicationController
   end
 
   def review_params
-    params.require(:review).permit(:id, :text, :rating, :beer_id)
+    params.require(:review).permit(:text, :rating)
   end
 end
