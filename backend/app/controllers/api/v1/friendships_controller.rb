@@ -1,3 +1,4 @@
+
 class API::V1::FriendshipsController < ApplicationController
   before_action :set_user
 
@@ -28,13 +29,18 @@ class API::V1::FriendshipsController < ApplicationController
     friendship = Friendship.find_by(user_id: @user.id, friend_id: friend.id)
 
     if friendship
-      render json: {
+      response_data = {
         is_friend: true,
         friendship: {
           friend_id: friendship.friend_id,
-          event_id: friendship.event_id 
+          bar_id: friendship.bar_id
         }
-      }, status: :ok
+      }
+      
+      # Solo incluye `event_id` si está presente
+      response_data[:friendship][:event_id] = friendship.event_id if friendship.event_id.present?
+
+      render json: response_data, status: :ok
     else
       render json: { is_friend: false }, status: :ok
     end
@@ -43,49 +49,25 @@ class API::V1::FriendshipsController < ApplicationController
   # POST /api/v1/users/:user_id/friendships
   def create
     friend = User.find_by(id: friendship_params[:friend_id])
-
-    # Si no existe el amigo
+  
     if friend.nil?
       render json: { error: "Friend not found" }, status: :not_found
       return
     end
-
-    # Si ya son amigos
+  
     if @user.friendships.exists?(friend: friend)
       render json: { error: "Already friends" }, status: :unprocessable_entity
       return
     end
-
-    # Si es una nueva amistad
+  
+    # Asigna un valor predeterminado a bar_id si no se ha proporcionado
     @friendship = @user.friendships.build(friendship_params)
+    @friendship.bar_id ||= 1 # Cambia a un valor predeterminado adecuado si es necesario
 
     if @friendship.save
       render json: @friendship, status: :created
     else
       render json: @friendship.errors, status: :unprocessable_entity
-    end
-  end
-
-  # PATCH /api/v1/users/:user_id/friendships/:friend_id
-  def update
-    friend = User.find_by(id: params[:friend_id])
-
-    if friend.nil?
-      render json: { error: "Friend not found" }, status: :not_found
-      return
-    end
-
-    friendship = Friendship.find_by(user_id: @user.id, friend_id: friend.id)
-
-    if friendship.nil?
-      render json: { error: "Friendship not found" }, status: :not_found
-      return
-    end
-
-    if friendship.update(friendship_params)
-      render json: friendship, status: :ok
-    else
-      render json: friendship.errors, status: :unprocessable_entity
     end
   end
 

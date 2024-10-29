@@ -1,14 +1,15 @@
-import axios from 'axios';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { View, Text, TextInput, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 
 function FriendSearch() {
-  const [friends, setFriends] = useState([]); 
+  const [friends, setFriends] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentUserId, setCurrentUserId] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -17,7 +18,7 @@ function FriendSearch() {
       if (storedUserId) {
         setCurrentUserId(storedUserId);
       } else {
-        console.error('CURRENT_USER_ID not found in AsyncStorage');
+        setError('CURRENT_USER_ID not found in AsyncStorage');
       }
     };
     fetchUserId();
@@ -26,6 +27,7 @@ function FriendSearch() {
   useEffect(() => {
     if (currentUserId) {
       setLoading(true);
+      setError('');
       axios.get('http://localhost:3001/api/v1/users')
         .then(response => {
           const filteredFriends = response.data.users.filter(user => user.id !== parseInt(currentUserId));
@@ -33,6 +35,7 @@ function FriendSearch() {
         })
         .catch(error => {
           console.error('Error fetching friends:', error);
+          setError('Error fetching friends');
         })
         .finally(() => {
           setLoading(false);
@@ -40,28 +43,35 @@ function FriendSearch() {
     }
   }, [currentUserId]);
 
-  const filteredFriends = friends.filter(friend => 
-    friend.handle.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredFriends = useMemo(() => {
+    return friends.filter(friend =>
+      friend.handle.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [friends, searchTerm]);
 
   return (
-    <View>
+    <View style={{ flex: 1, padding: 20 }}>
       <TextInput
         style={styles.searchInput}
         placeholder="Search friends..."
         value={searchTerm}
         onChangeText={setSearchTerm}
       />
+
+      {error && <Text style={{ color: 'red' }}>{error}</Text>}
+
       {loading ? (
-        <ActivityIndicator size="large" color="black" />
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color="black" />
+        </View>
       ) : (
         <FlatList
           data={filteredFriends}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
-            <TouchableOpacity 
-              style={styles.friendItem} 
-              onPress={() => navigation.navigate('FriendShow', { id: item.id })} 
+            <TouchableOpacity
+              style={styles.friendItem}
+              onPress={() => navigation.navigate('FriendShow', { id: item.id })}
             >
               <Text style={styles.friendName}>{item.first_name} {item.last_name}</Text>
               <Text style={styles.friendHandle}>@{item.handle}</Text>

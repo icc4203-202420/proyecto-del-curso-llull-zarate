@@ -1,51 +1,53 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import axios from 'axios';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Para obtener el token JWT
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import BarList from '../bars/BarsList';
 
 const EventShow = () => {
+  const [event, setEvent] = useState(null);
   const [barDetails, setBarDetails] = useState(null);
+  const [checkingIn, setCheckingIn] = useState(false);
   const route = useRoute();
-  const { barId, eventId } = route.params; // Recibimos barId y eventId
   const navigation = useNavigation();
+  const { barId } = route.params; // Recibimos el barId desde la navegación
 
   useEffect(() => {
-    axios.get(`http://localhost:3001/api/v1/bars/${barId}`)
-      .then(response => {
-        setBarDetails(response.data.bar);
-      })
-      .catch(error => {
-        console.error('Error fetching bar details:', error);
-      });
+    // Llamada para obtener los detalles del bar asociado al evento
+    if (barId) {
+      axios.get(`http://localhost:3001/api/v1/bars/${barId}`)
+        .then(response => setBarDetails(response.data.bar))
+        .catch(error => console.error('Error al obtener los detalles del bar:', error));
+    }
   }, [barId]);
 
+  // Función para realizar el check-in en el evento
   const handleCheckIn = async () => {
-    try {
-      const JWT_TOKEN = await AsyncStorage.getItem('JWT_TOKEN'); // Obtenemos el token JWT del almacenamiento
-      if (!JWT_TOKEN) {
-        Alert.alert('Error', 'No se encontró el token JWT');
-        return;
-      }
+    setCheckingIn(true);
+    const userId = await AsyncStorage.getItem('CURRENT_USER_ID');
 
-      await axios.post(
-        `http://localhost:3001/api/v1/events/${eventId}/check-in`, 
-        {}, 
-        { headers: { Authorization: `Bearer ${JWT_TOKEN}` } }
-      );
-
-      Alert.alert('Check-in realizado', 'Has hecho check-in en el evento. Tus amigos serán notificados.');
-      // Aquí es donde puedes añadir la lógica para notificar a los amigos, por ejemplo, haciendo otra llamada a la API
-    } catch (error) {
-      console.error('Error al hacer check-in:', error);
-      Alert.alert('Error', 'No se pudo hacer check-in en el evento.');
-    }
+    axios.post('http://localhost:3001/api/v1/attendances', {
+        user_id: userId,
+        event_id: route.params.eventId, // Utiliza el eventId recibido en la navegación
+    })
+    .then(response => {
+        Alert.alert('Check-in realizado', 'Tus amigos serán notificados.');
+    })
+    .catch(error => {
+        console.error('Error al hacer check-in:', error);
+        Alert.alert('Error', 'No se pudo realizar el check-in.');
+    })
+    .finally(() => {
+        setCheckingIn(false);
+    });
   };
 
   if (!barDetails) {
     return (
       <View style={styles.container}>
         <Text style={styles.loadingText}>Cargando detalles del bar...</Text>
+        <ActivityIndicator size="large" color="#000" />
       </View>
     );
   }
@@ -57,16 +59,20 @@ const EventShow = () => {
       <Text style={styles.barDescription}>Descripción: {barDetails.description}</Text>
 
       {/* Botón para Check-in */}
-      <TouchableOpacity style={styles.checkInButton} onPress={handleCheckIn}>
+      <TouchableOpacity
+        style={styles.checkInButton}
+        onPress={handleCheckIn}
+        disabled={checkingIn}
+      >
         <Text style={styles.checkInButtonText}>Hacer Check-in</Text>
       </TouchableOpacity>
 
-      {/* Botón para ver eventos */}
+      {/* Botón para ver otros eventos del bar */}
       <TouchableOpacity
         style={styles.button}
-        onPress={() => navigation.navigate('BarDetailScreen', { id: barDetails.id })}
+        onPress={() => navigation.navigate('BarsList')}
       >
-        <Text style={styles.buttonText}>Ver eventos en este bar</Text>
+        <Text style={styles.buttonText}>Ver otros eventos en bares</Text>
       </TouchableOpacity>
     </View>
   );

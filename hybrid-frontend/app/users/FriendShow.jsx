@@ -7,13 +7,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 function FriendShow() {
   const route = useRoute();
   const navigation = useNavigation();
-  const { id } = route.params; // Obtener el ID del amigo desde los parámetros de la navegación
+  const { id } = route.params;
   const [user, setUser] = useState(null);
   const [isFriend, setIsFriend] = useState(false);
   const [loading, setLoading] = useState(false);
   const [currentUserId, setCurrentUserId] = useState(null);
+  const [error, setError] = useState('');
 
-  // Obtener el ID del usuario actual desde AsyncStorage
   useEffect(() => {
     const fetchUserId = async () => {
       const storedUserId = await AsyncStorage.getItem('CURRENT_USER_ID');
@@ -24,7 +24,6 @@ function FriendShow() {
     fetchUserId();
   }, []);
 
-  // Obtener la información del usuario amigo
   useEffect(() => {
     axios.get(`http://localhost:3001/api/v1/users/${id}`)
       .then(response => {
@@ -32,10 +31,10 @@ function FriendShow() {
       })
       .catch(error => {
         console.error('Error fetching user:', error);
+        setError('Error fetching user data');
       });
   }, [id]);
 
-  // Verificar si el usuario ya es amigo
   useEffect(() => {
     if (currentUserId) {
       axios.get(`http://localhost:3001/api/v1/users/${currentUserId}/friendships/${id}`)
@@ -43,38 +42,29 @@ function FriendShow() {
           setIsFriend(response.data.is_friend);
         })
         .catch(error => {
-          console.error('Error fetching friendship data:', error);
+          console.error('', error);
+          setError('');
         });
     }
   }, [id, currentUserId]);
 
-  // Función para agregar al usuario como amigo
   const handleAddFriend = async () => {
     if (!currentUserId) return;
     setLoading(true);
+    setError('');
 
     try {
       await axios.post(`http://localhost:3001/api/v1/users/${currentUserId}/friendships`, {
-        friendship: { friend_id: id }
+        friendship: { friend_id: id, bar_id: 1 }
       });
-      setIsFriend(true);
+      setIsFriend(true); // Actualizamos el estado a 'ya son amigos' al añadir
     } catch (error) {
-      console.error('Error adding friend:', error.response);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Función para eliminar al usuario como amigo
-  const handleRemoveFriend = async () => {
-    if (!currentUserId) return;
-    setLoading(true);
-
-    try {
-      await axios.delete(`http://localhost:3001/api/v1/users/${currentUserId}/friendships/${id}`);
-      setIsFriend(false);
-    } catch (error) {
-      console.error('Error removing friend:', error.response);
+      console.error('Error adding friend:', error.response || error);
+      if (error.response && error.response.data.error === "Already friends") {
+        setError("You are already friends with this user");
+      } else {
+        setError("Error adding friend");
+      }
     } finally {
       setLoading(false);
     }
@@ -94,21 +84,14 @@ function FriendShow() {
         <Text style={styles.userName}>{user.first_name} {user.last_name}</Text>
       </View>
 
-      {isFriend ? (
-        <Button
-          title="Remove Friend"
-          onPress={handleRemoveFriend}
-          color="red"
-          disabled={loading}
-        />
-      ) : (
-        <Button
-          title="Add Friend"
-          onPress={handleAddFriend}
-          color="blue"
-          disabled={loading}
-        />
-      )}
+      {error && <Text style={{ color: 'red' }}>{error}</Text>}
+
+      <Button
+        title={isFriend ? "Already friends" : "Add Friend"}
+        onPress={handleAddFriend}
+        color="black"
+        disabled={isFriend || loading}
+      />
 
       {loading && <ActivityIndicator size="small" color="blue" style={styles.loadingIndicator} />}
     </View>
