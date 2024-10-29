@@ -1,14 +1,14 @@
 class API::V1::ReviewsController < ApplicationController
   respond_to :json
-  before_action :set_user, only: [:create]
+  before_action :set_user, only: [:create, :index], if: -> {params[:user,:id].present?}
   before_action :set_review, only: [:show, :update, :destroy]
-  before_action :set_beer, only: [:index, :create]
+  before_action :set_beer, only: [:index], if: -> {params[:beer_id].present?}
 
   def index
-    if @beer
-      @reviews = @beer.reviews.includes(:user)
-    elsif @user
-      @reviews = @user.reviews
+    if @user
+      @reviews = Review.where(user: @user)
+    elsif @beer
+      @reviews = Review.where(beer: @beer)
     else
       @reviews = Review.all
     end
@@ -64,7 +64,7 @@ class API::V1::ReviewsController < ApplicationController
   end
 
   def set_user
-    @user = User.find_by(id: params[:user_id])
+    @user = User.find_by(:user_id)
     render json: { error: "User not found" }, status: :not_found unless @user
   end
 
@@ -74,6 +74,6 @@ class API::V1::ReviewsController < ApplicationController
   end
 
   def review_params
-    params.require(:review).permit(:text, :rating)
+    params.require(:review).permit(:id, :text, :rating, :beer_id)
   end
 end

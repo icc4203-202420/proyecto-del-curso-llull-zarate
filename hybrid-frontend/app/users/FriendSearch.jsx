@@ -1,81 +1,98 @@
-import React from 'react';
-import { View, TextInput, FlatList, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import axios from 'axios';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TextInput, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
 
-const FriendSearch = ({ users, searchText, setSearchText, handleAddFriend }) => {
-  const filteredUsers = users.filter(user =>
-    user.handle.toLowerCase().includes(searchText.toLowerCase())
+function FriendSearch() {
+  const [friends, setFriends] = useState([]); 
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentUserId, setCurrentUserId] = useState('');
+  const [loading, setLoading] = useState(false);
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    const fetchUserId = async () => {
+      const storedUserId = await AsyncStorage.getItem('CURRENT_USER_ID');
+      if (storedUserId) {
+        setCurrentUserId(storedUserId);
+      } else {
+        console.error('CURRENT_USER_ID not found in AsyncStorage');
+      }
+    };
+    fetchUserId();
+  }, []);
+
+  useEffect(() => {
+    if (currentUserId) {
+      setLoading(true);
+      axios.get('http://localhost:3001/api/v1/users')
+        .then(response => {
+          const filteredFriends = response.data.users.filter(user => user.id !== parseInt(currentUserId));
+          setFriends(filteredFriends);
+        })
+        .catch(error => {
+          console.error('Error fetching friends:', error);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    }
+  }, [currentUserId]);
+
+  const filteredFriends = friends.filter(friend => 
+    friend.handle.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
     <View>
       <TextInput
-        style={styles.input}
-        placeholder="Search for friends by handle"
-        value={searchText}
-        onChangeText={setSearchText}
-        placeholderTextColor="#a5a5a5"
+        style={styles.searchInput}
+        placeholder="Search friends..."
+        value={searchTerm}
+        onChangeText={setSearchTerm}
       />
-      <Text style={styles.sectionTitle}>Search Results</Text>
-      <FlatList
-        data={filteredUsers}
-        keyExtractor={item => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.userCard}>
-            <Text style={styles.userHandle}>@{item.handle}</Text>
-            <TouchableOpacity style={styles.button} onPress={() => handleAddFriend(item.id)}>
-              <Text style={styles.buttonText}>Add Friend</Text>
+      {loading ? (
+        <ActivityIndicator size="large" color="black" />
+      ) : (
+        <FlatList
+          data={filteredFriends}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <TouchableOpacity 
+              style={styles.friendItem} 
+              onPress={() => navigation.navigate('FriendShow', { id: item.id })} 
+            >
+              <Text style={styles.friendName}>{item.first_name} {item.last_name}</Text>
+              <Text style={styles.friendHandle}>@{item.handle}</Text>
             </TouchableOpacity>
-          </View>
-        )}
-      />
+          )}
+        />
+      )}
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  input: {
-    height: 40,
-    borderColor: '#000', // Borde negro para el input
-    borderWidth: 1,
+  searchInput: {
+    backgroundColor: '#f0f0f0',
     borderRadius: 8,
-    paddingHorizontal: 10,
-    backgroundColor: '#fff', // Fondo blanco
-    color: '#000', // Texto negro
-    marginBottom: 20,
+    padding: 10,
+    marginVertical: 10,
   },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#000', // Título en negro
-    marginBottom: 10,
-  },
-  userCard: {
+  friendItem: {
     padding: 15,
-    backgroundColor: '#fff', // Fondo blanco
-    borderRadius: 8,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: '#000', // Borde negro
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
   },
-  userHandle: {
+  friendName: {
     fontSize: 18,
-    color: '#000', // Texto negro para los usuarios
+    color: 'black',
   },
-  button: {
-    fontSize: 16,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    backgroundColor: '#ffc107', // Botón amarillo
-    color: '#000', // Texto negro
-    fontWeight: 'bold',
-  },
-  buttonText: {
-    color: '#000',
-    fontWeight: 'bold',
+  friendHandle: {
+    fontSize: 14,
+    color: 'gray',
   },
 });
 

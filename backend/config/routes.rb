@@ -2,6 +2,7 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       # Otras rutas
+      
       resources :events do
         post 'attend_event', on: :member
       end
@@ -23,9 +24,11 @@ Rails.application.routes.draw do
           get 'search', to: 'users#search'
           get 'me', to: 'users#show'
         end
+
+        # Anidar friendships dentro de users
+        resources :friendships, only: [:index, :show, :create, :destroy, :update], param: :friend_id
       end
 
-      resources :friendships, only: [:create, :destroy, :index]
       resources :attendances, only: [:create]
     end
   end

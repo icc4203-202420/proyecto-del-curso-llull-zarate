@@ -15,7 +15,7 @@ import BarsList from './app/bars/BarsList';
 import BarDetailScreen from './app/bars/BarDetailScreen';
 
 import FriendIndex from './app/users/FriendIndex';
-import FriendList from './app/users/FriendList';
+import FriendShow from './app/users/FriendShow';
 
 import EventList from './app/events/EventList';
 import EventIndex from './app/events/EventIndex';
@@ -36,8 +36,8 @@ const App = () => {
         <Stack.Screen name="BeerDetailScreen" component={BeerDetailScreen} /> 
         <Stack.Screen name="BarsList" component={BarsList} />
         <Stack.Screen name="BarDetailScreen" component={BarDetailScreen} />
+        <Stack.Screen name="FriendShow" component={FriendShow} />
         <Stack.Screen name="FriendIndex" component={FriendIndex} />
-        <Stack.Screen name="FriendList" component={FriendList} />
         <Stack.Screen name="EventList" component={EventList} />
         <Stack.Screen name="EventIndex" component={EventIndex} />
         <Stack.Screen name="EventShow" component={EventShow} />
