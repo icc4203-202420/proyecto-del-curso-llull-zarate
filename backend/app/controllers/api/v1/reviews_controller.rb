@@ -1,8 +1,8 @@
 class API::V1::ReviewsController < ApplicationController
   respond_to :json
-  before_action :set_user, only: [:create, :index], if: -> {params[:user,:id].present?}
+  before_action :set_user, only: [:create, :index], if: -> { params[:user_id].present? }
   before_action :set_review, only: [:show, :update, :destroy]
-  before_action :set_beer, only: [:index], if: -> {params[:beer_id].present?}
+  before_action :set_beer, only: [:index, :create], if: -> { params[:beer_id].present? }
 
   def index
     if @user
@@ -40,8 +40,6 @@ class API::V1::ReviewsController < ApplicationController
       render json: { error: "User or Beer not found" }, status: :not_found
     end
   end
-  
-
 
   def update
     if @review.update(review_params)
@@ -64,7 +62,7 @@ class API::V1::ReviewsController < ApplicationController
   end
 
   def set_user
-    @user = User.find_by(:user_id)
+    @user = User.find_by(id: params[:user_id])
     render json: { error: "User not found" }, status: :not_found unless @user
   end
 

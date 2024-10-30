@@ -10,7 +10,6 @@ const BarEventCard = ({ event, onCheckIn }) => (
       <Text style={styles.cardTitle}>{event.name}</Text>
       <Text style={styles.cardSubtitle}>Fecha: {new Date(event.date).toLocaleDateString()}</Text>
       <Text style={styles.cardSubtitle}>Ubicación: {event.location}</Text>
-      <Button title="Check-in" onPress={() => onCheckIn(event.id)} color="#ffc107" />
     </View>
   </TouchableOpacity>
 );

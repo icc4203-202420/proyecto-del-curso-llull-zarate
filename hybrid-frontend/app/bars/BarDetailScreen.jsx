@@ -1,38 +1,49 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, ActivityIndicator, Alert, StyleSheet } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, Alert, StyleSheet, TouchableOpacity } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import BarEventCard from './BarEventCard';
 
 const BarDetailScreen = ({ route }) => {
-  const { id } = route.params;
+  const { barId } = route.params;
   const [bar, setBar] = useState(null);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios.get(`http://localhost:3001/api/v1/bars/${id}`)
+    axios.get(`http://localhost:3001/api/v1/bars/${barId}`)
       .then(response => {
         setBar(response.data.bar);
-        setEvents(response.data.bar.events);
+        const eventsWithCheckInStatus = response.data.bar.events.map(event => ({
+          ...event,
+          isCheckedIn: false, // Inicializamos cada evento con check-in como falso
+        }));
+        setEvents(eventsWithCheckInStatus);
         setLoading(false);
       })
       .catch(error => {
         console.error(error);
         setLoading(false);
       });
-  }, [id]);
+  }, [barId]);
 
   const handleCheckIn = async (eventId) => {
     try {
       const JWT_TOKEN = await AsyncStorage.getItem('JWT_TOKEN');
-      if (!JWT_TOKEN) {
-        Alert.alert('Error', 'No se encontró el token JWT');
+      const userId = await AsyncStorage.getItem('CURRENT_USER_ID');
+      if (!JWT_TOKEN || !userId) {
+        Alert.alert('Error', 'No se encontró el token JWT o el ID del usuario');
         return;
       }
 
-      await axios.post(`http://localhost:3001/api/v1/events/${eventId}/check-in`, 
-        {}, 
+      const response = await axios.post(
+        `http://localhost:3001/api/v1/events/${eventId}/attendances`, 
+        {
+          attendance: {
+            user_id: userId,
+            event_id: eventId,
+          },
+        }, 
         {
           headers: {
             Authorization: `Bearer ${JWT_TOKEN}`,
@@ -40,7 +51,16 @@ const BarDetailScreen = ({ route }) => {
         }
       );
 
-      Alert.alert('Check-in realizado', 'Has hecho check-in en el evento. Tus amigos serán notificados.');
+      if (response.data.status === 'already_checked_in') {
+        Alert.alert('Ya inscrito', 'Ya estás inscrito en este evento.');
+      } else {
+        Alert.alert('Check-in realizado', 'Has hecho check-in en el evento. Tus amigos serán notificados.');
+        setEvents(prevEvents =>
+          prevEvents.map(event =>
+            event.id === eventId ? { ...event, isCheckedIn: true } : event
+          )
+        );
+      }
     } catch (error) {
       console.error('Error al hacer check-in:', error);
       Alert.alert('Error', 'No se pudo hacer check-in en el evento.');
@@ -66,10 +86,21 @@ const BarDetailScreen = ({ route }) => {
         data={events}
         keyExtractor={(event) => event.id.toString()}
         renderItem={({ item }) => (
-          <BarEventCard 
-            event={item}
-            onCheckIn={handleCheckIn} 
-          />
+          <View style={styles.eventContainer}>
+            <BarEventCard event={item} />
+            <TouchableOpacity
+              style={[
+                styles.checkInButton,
+                item.isCheckedIn && styles.disabledButton,
+              ]}
+              onPress={() => !item.isCheckedIn && handleCheckIn(item.id)}
+              disabled={item.isCheckedIn}
+            >
+              <Text style={styles.checkInButtonText}>
+                {item.isCheckedIn ? 'Ya inscrito' : 'Hacer Check-in'}
+              </Text>
+            </TouchableOpacity>
+          </View>
         )}
         ListEmptyComponent={<Text style={styles.noEvents}>No hay eventos disponibles.</Text>}
       />
@@ -111,17 +142,23 @@ const styles = StyleSheet.create({
     color: '#ff0000',
     fontSize: 16,
   },
+  eventContainer: {
+    marginBottom: 10,
+  },
   checkInButton: {
-    marginTop: 20,
-    backgroundColor: '#ffc107',  // Fondo ámbar
+    marginTop: 10,
+    backgroundColor: '#ffc107',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 8,
   },
   checkInButtonText: {
-    color: '#000',  // Texto negro
+    color: '#000',
     fontWeight: 'bold',
     textAlign: 'center',
+  },
+  disabledButton: {
+    backgroundColor: '#ccc',
   },
 });
 

@@ -30,8 +30,8 @@ function FriendShow() {
         setUser(response.data.user);
       })
       .catch(error => {
-        console.error('Error fetching user:', error);
-        setError('Error fetching user data');
+        console.error('', error);
+        setError('');
       });
   }, [id]);
 

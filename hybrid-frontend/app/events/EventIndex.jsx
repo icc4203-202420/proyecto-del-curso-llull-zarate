@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import axios from 'axios';
 import { useRoute, useNavigation } from '@react-navigation/native';
 
@@ -8,7 +8,6 @@ const EventIndex = () => {
   const route = useRoute();
   const { eventId } = route.params;
   const navigation = useNavigation();
-  const userId = 'CURRENT_USER_ID'; // Cambiar por el ID del usuario actual
 
   useEffect(() => {
     axios.get(`http://localhost:3001/api/v1/events/${eventId}`)
@@ -34,9 +33,9 @@ const EventIndex = () => {
 
       <TouchableOpacity
         style={styles.button}
-        onPress={() => navigation.navigate('EventShow', { barId: eventDetails.bar_id })}
+        onPress={() => navigation.navigate('BarDetailScreen', { barId: eventDetails.bar_id })}
       >
-        <Text style={styles.buttonText}>Ver detalles del bar</Text>
+        <Text style={styles.buttonText}>Ver eventos en este bar</Text>
       </TouchableOpacity>
     </View>
   );
@@ -69,18 +68,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#000',
     marginTop: 10,
-  },
-  checkInButton: {
-    marginTop: 20,
-    backgroundColor: '#ffc107',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-  },
-  checkInButtonText: {
-    color: '#000',
-    fontWeight: 'bold',
-    textAlign: 'center',
   },
   button: {
     marginTop: 20,
