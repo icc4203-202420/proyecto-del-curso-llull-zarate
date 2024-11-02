@@ -37,6 +37,14 @@ const EventIndex = () => {
       >
         <Text style={styles.buttonText}>Ver eventos en este bar</Text>
       </TouchableOpacity>
+
+      {/* Botón para navegar a EventPicture */}
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.navigate('EventPicture', { eventId: eventId, eventName: eventDetails.name })}
+      >
+        <Text style={styles.buttonText}>Ver y subir fotos del evento</Text>
+      </TouchableOpacity>
     </View>
   );
 };

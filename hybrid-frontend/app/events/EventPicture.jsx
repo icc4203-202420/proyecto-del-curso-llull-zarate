@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Button, TextInput, ActivityIndicator, Alert, StyleSheet, FlatList, Image } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as ImagePicker from 'expo-image-picker'; // Librería para abrir la galería de imágenes
-import EventPictureCard from './EventPictureCard.jsx'; // Componente que muestra las fotos subidas
+import * as ImagePicker from 'expo-image-picker';
+import EventPictureCard from './EventPictureCard'; 
 
 const EventPicture = ({ route, navigation }) => {
   const { eventId, eventName } = route.params;
@@ -15,15 +15,12 @@ const EventPicture = ({ route, navigation }) => {
   const [pictures, setPictures] = useState([]);
 
   useEffect(() => {
-    // Obtener el ID del usuario actual y la lista de amigos
     const fetchUserData = async () => {
       try {
         const storedUserId = await AsyncStorage.getItem('CURRENT_USER_ID');
         if (storedUserId) {
           const response = await axios.get(`http://localhost:3001/api/v1/users/${storedUserId}`);
           setFriends(response.data.friends);
-        } else {
-          console.error('CURRENT_USER_ID not found');
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
@@ -33,7 +30,6 @@ const EventPicture = ({ route, navigation }) => {
     fetchEventPictures();
   }, []);
 
-  // Obtener las imágenes ya subidas del evento
   const fetchEventPictures = async () => {
     try {
       const response = await axios.get(`http://localhost:3001/api/v1/events/${eventId}/pictures`);
@@ -43,7 +39,6 @@ const EventPicture = ({ route, navigation }) => {
     }
   };
 
-  // Abrir la galería para seleccionar una imagen
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -57,8 +52,12 @@ const EventPicture = ({ route, navigation }) => {
     }
   };
 
-  // Subir la imagen y otros datos del evento
   const handleSubmit = async () => {
+    if (!description.trim() || !picture) {
+      Alert.alert('Error', 'Todos los campos deben ser completados');
+      return;
+    }
+
     try {
       setLoading(true);
       const storedUserId = await AsyncStorage.getItem('CURRENT_USER_ID');
@@ -83,7 +82,7 @@ const EventPicture = ({ route, navigation }) => {
       setPicture(null);
       setDescription('');
       setTaggedFriends([]);
-      fetchEventPictures(); // Refrescar las imágenes del evento
+      fetchEventPictures();
     } catch (error) {
       console.error('Error uploading picture:', error);
       Alert.alert('Error', 'Could not upload the picture.');
@@ -107,7 +106,6 @@ const EventPicture = ({ route, navigation }) => {
         onChangeText={setDescription}
       />
 
-      {/* Etiquetar amigos */}
       <TextInput
         style={styles.input}
         placeholder="Tag friends (comma separated handles)"

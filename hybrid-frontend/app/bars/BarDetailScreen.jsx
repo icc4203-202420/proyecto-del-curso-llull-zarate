@@ -9,6 +9,7 @@ const BarDetailScreen = ({ route }) => {
   const [bar, setBar] = useState(null);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [lastCheckIn, setLastCheckIn] = useState(null);
 
   useEffect(() => {
     axios.get(`http://localhost:3001/api/v1/bars/${barId}`)
@@ -55,6 +56,9 @@ const BarDetailScreen = ({ route }) => {
         Alert.alert('Ya inscrito', 'Ya estás inscrito en este evento.');
       } else {
         Alert.alert('Check-in realizado', 'Has hecho check-in en el evento. Tus amigos serán notificados.');
+        setLastCheckIn(`Check-in realizado en el evento con ID: ${eventId}`);
+        
+        // Actualizamos la lista de eventos para reflejar que el usuario hizo check-in
         setEvents(prevEvents =>
           prevEvents.map(event =>
             event.id === eventId ? { ...event, isCheckedIn: true } : event
@@ -81,6 +85,8 @@ const BarDetailScreen = ({ route }) => {
       <Text style={styles.subtitle}>Ubicación: {bar.location || 'Ubicación no disponible'}</Text>
       <Text style={styles.subtitle}>Descripción: {bar.description || 'Descripción no disponible'}</Text>
 
+      {lastCheckIn && <Text style={styles.checkInConfirmation}>{lastCheckIn}</Text>}
+
       <Text style={styles.eventsTitle}>Eventos:</Text>
       <FlatList
         data={events}
@@ -88,6 +94,7 @@ const BarDetailScreen = ({ route }) => {
         renderItem={({ item }) => (
           <View style={styles.eventContainer}>
             <BarEventCard event={item} />
+            {/* El TouchableOpacity envuelve solo el botón de check-in */}
             <TouchableOpacity
               style={[
                 styles.checkInButton,
@@ -159,6 +166,12 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     backgroundColor: '#ccc',
+  },
+  checkInConfirmation: {
+    textAlign: 'center',
+    color: 'green',
+    marginTop: 10,
+    fontSize: 16,
   },
 });
 

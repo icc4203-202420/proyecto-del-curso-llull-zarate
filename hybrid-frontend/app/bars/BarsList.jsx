@@ -26,7 +26,7 @@ const BarList = ({ navigation }) => {
   };
 
   const handleBarPress = (id) => {
-    navigation.navigate('BarDetailScreen', { id });
+    navigation.navigate('BarDetailScreen', { barId: id });
   };
 
   return (

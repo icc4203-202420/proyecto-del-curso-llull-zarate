@@ -20,7 +20,7 @@ import FriendShow from './app/users/FriendShow';
 import EventList from './app/events/EventList';
 import EventIndex from './app/events/EventIndex';
 import EventShow from './app/events/EventShow'
-
+import EventPicture from './app/events/EventPicture';
 const Stack = createStackNavigator();
 
 const App = () => {
@@ -41,6 +41,8 @@ const App = () => {
         <Stack.Screen name="EventList" component={EventList} />
         <Stack.Screen name="EventIndex" component={EventIndex} />
         <Stack.Screen name="EventShow" component={EventShow} />
+        <Stack.Screen name="EventPicture" component={EventPicture} />
+
 
       </Stack.Navigator>
     </NavigationContainer>

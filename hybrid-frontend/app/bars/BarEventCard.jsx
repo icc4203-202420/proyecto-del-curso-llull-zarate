@@ -1,8 +1,8 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, View, Button } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 
-const BarEventCard = ({ event, onCheckIn }) => (
-  <TouchableOpacity style={styles.card} onPress={() => onCheckIn(event.id)}>
+const BarEventCard = ({ event }) => (
+  <View style={styles.card}>
     <View style={styles.circle}>
       <Text style={styles.circleText}>{event.name.charAt(0)}</Text>
     </View>
@@ -11,7 +11,7 @@ const BarEventCard = ({ event, onCheckIn }) => (
       <Text style={styles.cardSubtitle}>Fecha: {new Date(event.date).toLocaleDateString()}</Text>
       <Text style={styles.cardSubtitle}>Ubicación: {event.location}</Text>
     </View>
-  </TouchableOpacity>
+  </View>
 );
 
 const styles = StyleSheet.create({
