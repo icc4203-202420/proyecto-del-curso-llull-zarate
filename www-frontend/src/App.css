@@ -3,6 +3,7 @@
   height: 100vh;
   overflow: hidden;
   background-color: white;
+  min-height: 100vh;
 }
 
 main {
@@ -14,7 +15,7 @@ main {
 
 .MuiDrawer-paper {
   width: 250px;
-  background-color: white; /* Fondo blanco del Sidebar */
+  background-color: white; 
 }
 .Home{
   background-color: white;
@@ -36,3 +37,9 @@ main {
   margin: 0;
   color: black;
 }
+html, body {
+  height: 100%;
+  margin: 0;
+  overflow: auto; /* Asegúrate de que no haya estilos que eviten el scroll */
+}
+
