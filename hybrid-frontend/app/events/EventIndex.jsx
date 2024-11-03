@@ -35,7 +35,7 @@ const EventIndex = () => {
         style={styles.button}
         onPress={() => navigation.navigate('BarDetailScreen', { barId: eventDetails.bar_id })}
       >
-        <Text style={styles.buttonText}>Ver eventos en este bar</Text>
+        <Text style={styles.buttonText}>Ver eventos en este bar(check-in)</Text>
       </TouchableOpacity>
 
       {/* Botón para navegar a EventPicture */}
@@ -43,7 +43,7 @@ const EventIndex = () => {
         style={styles.button}
         onPress={() => navigation.navigate('EventPicture', { eventId: eventId, eventName: eventDetails.name })}
       >
-        <Text style={styles.buttonText}>Ver y subir fotos del evento</Text>
+        <Text style={styles.buttonText}>Subir fotos del evento</Text>
       </TouchableOpacity>
     </View>
   );

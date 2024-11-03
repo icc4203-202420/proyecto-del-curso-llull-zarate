@@ -4,8 +4,10 @@ Rails.application.routes.draw do
       # Otras rutas
 
       resources :events do
-        post 'attendances', to: 'attendances#create', on: :member # Asocia la ruta a AttendancesController#create
+        post 'attendances', to: 'attendances#create', on: :member
+        resources :pictures, only: [:index, :create], controller: 'event_pictures' # Agregar esta línea
       end
+      
 
       resources :bars do
         collection do

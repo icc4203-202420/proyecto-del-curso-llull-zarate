@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Button, TextInput, ActivityIndicator, Alert, StyleSheet, FlatList, Image } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, ActivityIndicator, Alert, StyleSheet, FlatList, Image } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
-import EventPictureCard from './EventPictureCard'; 
+import EventPictureCard from './EventPictureCard';
 
 const EventPicture = ({ route, navigation }) => {
   const { eventId, eventName } = route.params;
@@ -26,13 +26,24 @@ const EventPicture = ({ route, navigation }) => {
         console.error('Error fetching user data:', error);
       }
     };
+
+    const requestPermissions = async () => {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      console.log('Permission status:', status);
+      if (status !== 'granted') {
+        Alert.alert('Permiso requerido', 'Se necesita permiso para acceder a la galería de fotos');
+      }
+    };
+
     fetchUserData();
     fetchEventPictures();
+    requestPermissions();
   }, []);
 
   const fetchEventPictures = async () => {
     try {
       const response = await axios.get(`http://localhost:3001/api/v1/events/${eventId}/pictures`);
+      console.log('Fetched pictures:', response.data.pictures);
       setPictures(response.data.pictures);
     } catch (error) {
       console.error('Error fetching event pictures:', error);
@@ -47,7 +58,10 @@ const EventPicture = ({ route, navigation }) => {
       quality: 1,
     });
 
+    console.log('Image picker result:', result);
+
     if (!result.cancelled) {
+      console.log('Selected image URI:', result.uri);
       setPicture(result.uri);
     }
   };
@@ -61,7 +75,10 @@ const EventPicture = ({ route, navigation }) => {
     try {
       setLoading(true);
       const storedUserId = await AsyncStorage.getItem('CURRENT_USER_ID');
-      if (!storedUserId) return;
+      if (!storedUserId) {
+        Alert.alert('Error', 'No se pudo obtener el ID del usuario');
+        return;
+      }
 
       const formData = new FormData();
       formData.append('event_picture[picture]', {
@@ -74,18 +91,24 @@ const EventPicture = ({ route, navigation }) => {
       formData.append('event_picture[user_id]', storedUserId);
       formData.append('event_picture[tagged_friends]', JSON.stringify(taggedFriends));
 
+      const JWT_TOKEN = await AsyncStorage.getItem('JWT_TOKEN');
+      console.log('JWT Token:', JWT_TOKEN);
+
       await axios.post('http://localhost:3001/api/v1/event_pictures', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${JWT_TOKEN}`,
+        },
       });
 
-      Alert.alert('Picture uploaded', 'The picture has been successfully uploaded!');
+      Alert.alert('Éxito', '¡La imagen se ha subido exitosamente!');
       setPicture(null);
       setDescription('');
       setTaggedFriends([]);
       fetchEventPictures();
     } catch (error) {
       console.error('Error uploading picture:', error);
-      Alert.alert('Error', 'Could not upload the picture.');
+      Alert.alert('Error', 'No se pudo subir la imagen.');
     } finally {
       setLoading(false);
     }
@@ -95,7 +118,9 @@ const EventPicture = ({ route, navigation }) => {
     <View style={styles.container}>
       <Text style={styles.title}>Add Pictures to {eventName}</Text>
 
-      <Button title="Pick an image from camera roll" onPress={pickImage} color="#000" />
+      <TouchableOpacity style={styles.button} onPress={pickImage}>
+        <Text style={styles.buttonText}>Pick an image from camera roll</Text>
+      </TouchableOpacity>
 
       {picture && <Image source={{ uri: picture }} style={styles.previewImage} />}
 
@@ -113,12 +138,13 @@ const EventPicture = ({ route, navigation }) => {
         onChangeText={(text) => setTaggedFriends(text.split(',').map(handle => handle.trim()))}
       />
 
-      <Button
-        title={loading ? 'Uploading...' : 'Upload Picture'}
+      <TouchableOpacity
+        style={[styles.button, (loading || !picture) && styles.buttonDisabled]}
         onPress={handleSubmit}
-        color="#000"
         disabled={loading || !picture}
-      />
+      >
+        <Text style={styles.buttonText}>{loading ? 'Uploading...' : 'Upload Picture'}</Text>
+      </TouchableOpacity>
 
       {loading && <ActivityIndicator size="large" color="#000" />}
 
@@ -143,6 +169,20 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 16,
+  },
+  button: {
+    backgroundColor: '#000',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  buttonDisabled: {
+    backgroundColor: '#ccc',
   },
   previewImage: {
     width: '100%',
