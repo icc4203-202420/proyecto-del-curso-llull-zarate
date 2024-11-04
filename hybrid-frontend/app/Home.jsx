@@ -7,7 +7,7 @@ const Home = ({ navigation }) => {
     <View style={styles.container}>
       <TouchableOpacity
         style={styles.profileButton}
-        onPress={() => navigation.navigate('Profile')} // Navega a la pantalla de perfil
+        onPress={() => navigation.navigate('Profile')} 
       >
         <Ionicons name="person-outline" size={30} color="#000" />
       </TouchableOpacity>
@@ -76,13 +76,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   profileButton: {
-    position: 'absolute', // Posición absoluta para colocar en la esquina
-    top: 20, // Espaciado desde la parte superior
-    right: 20, // Espaciado desde la derecha
-    backgroundColor: '#fff', // Fondo blanco para el botón
-    borderRadius: 50, // Bordes redondeados
-    padding: 10, // Espaciado interno
-    elevation: 3, // Sombra
+    position: 'absolute', 
+    top: 20, 
+    right: 20, 
+    backgroundColor: '#fff', 
+    borderRadius: 50, 
+    padding: 10, 
+    elevation: 3, 
   },
 });
 

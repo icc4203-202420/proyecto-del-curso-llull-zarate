@@ -8,20 +8,20 @@ const EventShow = () => {
   const [event, setEvent] = useState(null);
   const [barDetails, setBarDetails] = useState(null);
   const [checkingIn, setCheckingIn] = useState(false);
-  const [isCheckedIn, setIsCheckedIn] = useState(false); // Estado para verificar si ya está registrado
+  const [isCheckedIn, setIsCheckedIn] = useState(false); 
   const route = useRoute();
   const navigation = useNavigation();
-  const { barId, eventId } = route.params; // Recibimos barId y eventId desde la navegación
+  const { barId, eventId } = route.params; 
 
   useEffect(() => {
-    // Obtener detalles del bar
+    
     if (barId) {
       axios.get(`http://localhost:3001/api/v1/bars/${barId}`)
         .then(response => setBarDetails(response.data.bar))
         .catch(error => console.error('Error al obtener los detalles del bar:', error));
     }
 
-    // Verificar si el usuario ya está registrado en el evento
+    
     checkIfUserIsCheckedIn();
   }, [barId, eventId]);
 
@@ -31,14 +31,13 @@ const EventShow = () => {
       const response = await axios.get(`http://localhost:3001/api/v1/events/${eventId}/attendances?user_id=${userId}`);
       
       if (response.data.attendance) {
-        setIsCheckedIn(true); // Si hay un registro, el usuario ya hizo check-in
+        setIsCheckedIn(true); 
       }
     } catch (error) {
       console.error('Error al verificar el estado de check-in:', error);
     }
   };
 
-  // Función para realizar el check-in en el evento
   const handleCheckIn = async () => {
     if (isCheckedIn) {
       Alert.alert('Ya inscrito', 'Ya estás inscrito en este evento.');
@@ -54,7 +53,7 @@ const EventShow = () => {
     })
     .then(response => {
         Alert.alert('Check-in realizado', 'Tus amigos serán notificados.');
-        setIsCheckedIn(true); // Actualizar el estado para reflejar que el usuario ya hizo check-in
+        setIsCheckedIn(true); 
     })
     .catch(error => {
         console.error('Error al hacer check-in:', error);
@@ -80,11 +79,11 @@ const EventShow = () => {
       <Text style={styles.barLocation}>Ubicación: {barDetails.location}</Text>
       <Text style={styles.barDescription}>Descripción: {barDetails.description}</Text>
 
-      {/* Botón para Check-in */}
+     
       <TouchableOpacity
         style={[styles.checkInButton, isCheckedIn && styles.disabledButton]}
         onPress={handleCheckIn}
-        disabled={checkingIn || isCheckedIn} // Deshabilitar si está haciendo check-in o si ya está registrado
+        disabled={checkingIn || isCheckedIn} 
       >
         <Text style={styles.checkInButtonText}>
           {isCheckedIn ? 'Ya inscrito' : 'Hacer Check-in'}

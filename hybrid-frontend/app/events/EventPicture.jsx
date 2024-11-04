@@ -4,47 +4,36 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import EventPictureCard from './EventPictureCard';
+import { useNavigation } from '@react-navigation/native';
 
-const EventPicture = ({ route, navigation }) => {
-  const { eventId, eventName } = route.params;
+const EventPicture = ({ eventId: propEventId, eventName: propEventName }) => {
   const [picture, setPicture] = useState(null);
   const [description, setDescription] = useState('');
   const [taggedFriends, setTaggedFriends] = useState([]);
-  const [friends, setFriends] = useState([]);
   const [loading, setLoading] = useState(false);
   const [pictures, setPictures] = useState([]);
+  const navigation = useNavigation();
+
+  // Para pruebas, si no se pasan props, asigna valores ficticios
+  const eventId = propEventId || '1'; // Puedes cambiar '1' por cualquier ID de prueba
+  const eventName = propEventName || 'Evento de Prueba';
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const storedUserId = await AsyncStorage.getItem('CURRENT_USER_ID');
-        if (storedUserId) {
-          const response = await axios.get(`http://localhost:3001/api/v1/users/${storedUserId}`);
-          setFriends(response.data.friends);
-        }
-      } catch (error) {
-        console.error('Error fetching user data:', error);
-      }
-    };
-
-    const requestPermissions = async () => {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      console.log('Permission status:', status);
-      if (status !== 'granted') {
-        Alert.alert('Permiso requerido', 'Se necesita permiso para acceder a la galería de fotos');
-      }
-    };
-
-    fetchUserData();
     fetchEventPictures();
     requestPermissions();
   }, []);
 
+  const requestPermissions = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permiso requerido', 'Se necesita permiso para acceder a la galería de fotos');
+    }
+  };
+
   const fetchEventPictures = async () => {
     try {
       const response = await axios.get(`http://localhost:3001/api/v1/events/${eventId}/pictures`);
-      console.log('Fetched pictures:', response.data.pictures);
-      setPictures(response.data.pictures);
+      setPictures(response.data.event_pictures);
     } catch (error) {
       console.error('Error fetching event pictures:', error);
     }
@@ -58,11 +47,20 @@ const EventPicture = ({ route, navigation }) => {
       quality: 1,
     });
 
-    console.log('Image picker result:', result);
+    if (!result.canceled) {
+      const uri = result.assets[0].uri;
+      const fileName = uri.split('/').pop();
+      const fileExtension = fileName.split('.').pop();
 
-    if (!result.cancelled) {
-      console.log('Selected image URI:', result.uri);
-      setPicture(result.uri);
+      const mimeTypes = {
+        jpg: 'image/jpeg',
+        jpeg: 'image/jpeg',
+        png: 'image/png',
+        heic: 'image/heic',
+      };
+      const mimeType = mimeTypes[fileExtension] || 'image/png';
+
+      setPicture({ uri, name: fileName, type: mimeType });
     }
   };
 
@@ -74,27 +72,28 @@ const EventPicture = ({ route, navigation }) => {
 
     try {
       setLoading(true);
-      const storedUserId = await AsyncStorage.getItem('CURRENT_USER_ID');
-      if (!storedUserId) {
+      const userId = await AsyncStorage.getItem('CURRENT_USER_ID');
+      if (!userId) {
         Alert.alert('Error', 'No se pudo obtener el ID del usuario');
+        setLoading(false);
         return;
       }
 
       const formData = new FormData();
-      formData.append('event_picture[picture]', {
-        uri: picture,
-        name: 'event.jpg',
-        type: 'image/jpeg',
-      });
-      formData.append('event_picture[description]', description);
       formData.append('event_picture[event_id]', eventId);
-      formData.append('event_picture[user_id]', storedUserId);
+      formData.append('event_picture[user_id]', parseInt(userId, 10));
+      formData.append('event_picture[description]', description);
+      formData.append('event_picture[picture]', picture);
       formData.append('event_picture[tagged_friends]', JSON.stringify(taggedFriends));
 
       const JWT_TOKEN = await AsyncStorage.getItem('JWT_TOKEN');
-      console.log('JWT Token:', JWT_TOKEN);
+      if (!JWT_TOKEN) {
+        Alert.alert('Error', 'Token de autenticación no encontrado');
+        setLoading(false);
+        return;
+      }
 
-      await axios.post('http://localhost:3001/api/v1/event_pictures', formData, {
+      await axios.post(`http://localhost:3001/api/v1/events/${eventId}/pictures`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${JWT_TOKEN}`,
@@ -122,7 +121,7 @@ const EventPicture = ({ route, navigation }) => {
         <Text style={styles.buttonText}>Pick an image from camera roll</Text>
       </TouchableOpacity>
 
-      {picture && <Image source={{ uri: picture }} style={styles.previewImage} />}
+      {picture && <Image source={{ uri: picture.uri }} style={styles.previewImage} />}
 
       <TextInput
         style={styles.input}

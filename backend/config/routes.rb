@@ -5,7 +5,7 @@ Rails.application.routes.draw do
 
       resources :events do
         post 'attendances', to: 'attendances#create', on: :member
-        resources :pictures, only: [:index, :create], controller: 'event_pictures' # Agregar esta línea
+        resources :pictures, only: [:index, :create], controller: 'event_pictures' 
       end
       
 
@@ -17,7 +17,7 @@ Rails.application.routes.draw do
       end
 
       resources :beers do
-        resources :reviews, only: [:index, :create] # Anidar reseñas dentro de cervezas
+        resources :reviews, only: [:index, :create] 
       end
 
       resources :users do
@@ -27,7 +27,7 @@ Rails.application.routes.draw do
           get 'me', to: 'users#show'
         end
 
-        # Anidar friendships dentro de users
+        
         resources :friendships, only: [:index, :show, :create, :destroy, :update], param: :friend_id
       end
 

@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   signUpLink: {
-    color: '#FF8603', // Color mostaza
+    color: '#FF8603', 
     fontWeight: 'bold',
   },
 });

@@ -6,7 +6,7 @@ import axios from 'axios';
 
 const Profile = () => {
   const navigation = useNavigation();
-  const [user, setUser] = useState({}); // Estado para almacenar la información del usuario
+  const [user, setUser] = useState({}); 
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -17,7 +17,7 @@ const Profile = () => {
           const response = await axios.get('http://localhost:3001/api/v1/users/me', { 
             headers: { Authorization: `Bearer ${JWT_TOKEN}` },
           });
-          setUser(response.data.user); // Almacena la información del usuario en el estado
+          setUser(response.data.user); 
         } else {
           console.log('No JWT token found');
         }
@@ -29,7 +29,7 @@ const Profile = () => {
     fetchUserData();
   }, []);
 
-  // Maneja los datos opcionales (si faltan valores, puedes mostrar mensajes predeterminados o simplemente omitir el texto)
+
   const renderUserName = () => {
     if (user.first_name || user.last_name) {
       return (

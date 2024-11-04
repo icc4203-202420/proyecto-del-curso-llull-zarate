@@ -16,21 +16,21 @@ const Logout = () => {
         return;
       }
 
-      // Llamada al endpoint para cerrar sesión
+      
       await axios.delete('http://localhost:3001/api/v1/logout', { 
-        headers: { Authorization: `Bearer ${JWT_TOKEN}` }, // Asegúrate de usar "Bearer" si tu API lo requiere
+        headers: { Authorization: `Bearer ${JWT_TOKEN}` }, 
       });
 
-      // Eliminar JWT_TOKEN y CURRENT_USER_ID del AsyncStorage
+
       await AsyncStorage.removeItem('JWT_TOKEN');
       await AsyncStorage.removeItem('CURRENT_USER_ID');
 
       Alert.alert('Success', 'Logged out successfully!', [
-        { text: 'OK', onPress: () => navigation.navigate('Login') } // Navegar después de que el usuario cierre la alerta
+        { text: 'OK', onPress: () => navigation.navigate('Login') } 
       ]);
     } catch (error) {
       console.error('Error logging out:', error);
-      Alert.alert('Error', 'Failed to log out. Please try again.'); // Mensaje más claro
+      Alert.alert('Error', 'Failed to log out. Please try again.'); 
     }
   };
 

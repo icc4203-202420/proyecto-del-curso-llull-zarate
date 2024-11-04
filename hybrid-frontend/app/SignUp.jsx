@@ -14,19 +14,19 @@ const SignUp = () => {
   const navigation = useNavigation();
 
   const handleSubmit = () => {
-    // Verificar que todos los campos requeridos estén completos
+    
     if (!firstName || !lastName || !email || !handle || !password || !passwordConfirmation) {
       Alert.alert('Error', 'Por favor completa todos los campos.');
       return;
     }
 
-    // Verificar que las contraseñas coincidan
+   
     if (password !== passwordConfirmation) {
       Alert.alert('Error', 'Las contraseñas no coinciden.');
       return;
     }
 
-    axios.post('http://localhost:3001/api/v1/signup', { // Cambia a la IP correcta
+    axios.post('http://localhost:3001/api/v1/signup', { 
       user: {
         first_name: firstName,
         last_name: lastName,
@@ -58,9 +58,9 @@ const SignUp = () => {
         navigation.navigate('Login');
       })
       .catch(error => {
-        console.error('Error durante el registro:', error.response.data); // Muestra el mensaje de error del servidor
+        console.error('Error durante el registro:', error.response.data); 
         if (error.response && error.response.status === 422) {
-          // Manejo de errores específicos de validación
+    
           const errors = error.response.data.errors;
           const errorMessage = Object.values(errors).flat().join('\n');
           Alert.alert('Error durante el registro', errorMessage || 'Por favor verifica tu información.');
@@ -94,7 +94,7 @@ const SignUp = () => {
       />
       <TextInput
         style={styles.input}
-        placeholder="Handle: (For example @kingofbeers)"
+        placeholder="Handle: (For example: kingofbeers)"
         value={handle}
         onChangeText={setHandle}
       />

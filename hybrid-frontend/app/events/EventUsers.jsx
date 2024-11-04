@@ -17,7 +17,7 @@ export default function EventsUsers() {
         const fetchEventData = async () => {
             const currentUserId = await AsyncStorage.getItem('CURRENT_USER_ID');
 
-            // Obtener el evento y los usuarios del evento
+            
             axios.get(`http://localhost:3001/api/v1/events/${id}`)
                 .then(response => {
                     setEvent(response.data);
@@ -25,7 +25,7 @@ export default function EventsUsers() {
                 })
                 .catch(error => console.error('Error fetching event:', error));
 
-            // Obtener los amigos del usuario actual
+            l
             if (currentUserId) {
                 axios.get(`http://localhost:3001/api/v1/users/${currentUserId}/friendships`)
                     .then(response => {
@@ -38,7 +38,7 @@ export default function EventsUsers() {
         fetchEventData();
     }, [id]);
 
-    // Ordenar usuarios mostrando primero los amigos
+ 
     const sortedUsers = [...users].sort((a, b) => {
         const aIsFriend = friends.includes(a.id);
         const bIsFriend = friends.includes(b.id);

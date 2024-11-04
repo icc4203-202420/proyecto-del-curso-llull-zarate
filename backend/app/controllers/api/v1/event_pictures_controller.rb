@@ -6,17 +6,16 @@ class API::V1::EventPicturesController < ApplicationController
   before_action :verify_jwt_token, only: [:create, :destroy]
 
   def index
-    @event_pictures = @event.event_pictures.includes(:image_attachment)
+    @event_pictures = @event.event_pictures.includes(:user)
 
     json_response = @event_pictures.map do |event_picture|
       event_picture.as_json.merge(
-        image_url: url_for(event_picture.image)
+        image_url: url_for(event_picture.picture),
+        user: {
+          id: event_picture.user.id,
+          handle: event_picture.user.handle
+        }
       )
-    end
-
-    json_response.each do |event_picture|
-      user = User.find(event_picture['user_id'])
-      event_picture.merge!(user: { id: user.id, handle: user.handle })
     end
 
     render json: { event_pictures: json_response }, status: :ok
@@ -29,7 +28,7 @@ class API::V1::EventPicturesController < ApplicationController
     if @event_picture.save
       render json: { message: 'Image successfully uploaded.', event_picture: @event_picture }, status: :created
     else
-      render json: { errors: @event_picture.errors }, status: :unprocessable_entity
+      render json: { errors: @event_picture.errors.full_messages }, status: :unprocessable_entity
     end
   end
 
@@ -38,7 +37,7 @@ class API::V1::EventPicturesController < ApplicationController
     if @event_picture.destroy
       render json: { message: 'Image successfully deleted.' }, status: :no_content
     else
-      render json: { errors: @event_picture.errors }, status: :unprocessable_entity
+      render json: { errors: @event_picture.errors.full_messages }, status: :unprocessable_entity
     end
   end
 

@@ -13,7 +13,7 @@ const BarList = ({ navigation }) => {
     axios.get('http://localhost:3001/api/v1/bars')
       .then(response => {
         setBars(response.data.bars);
-        setFilteredBars(response.data.bars); // Inicialmente muestra todos los bares
+        setFilteredBars(response.data.bars); 
       })
       .catch(error => console.error(error));
   }, []);
