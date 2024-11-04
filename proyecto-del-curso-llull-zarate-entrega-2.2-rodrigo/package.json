@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "expo": "^51.0.0",
+    "@react-google-maps/api": "^2.19.3",
+    "axios": "^1.7.5",
+    "expo-secure-store": "^13.0.2"
+  }
+}

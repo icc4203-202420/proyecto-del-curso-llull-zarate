@@ -1,0 +1,11 @@
+{
+  "expo": {
+      "name": "Drink-io",
+      "slug": "Busca bares",
+      "version": "1.0.0",
+      "sdkVersion": "51.0.0",
+      "plugins": [
+      "expo-secure-store"
+    ]
+  }
+}

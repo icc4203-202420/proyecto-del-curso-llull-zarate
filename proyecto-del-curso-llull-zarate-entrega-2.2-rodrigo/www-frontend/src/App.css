@@ -1,0 +1,45 @@
+.App {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background-color: white;
+  min-height: 100vh;
+}
+
+main {
+  flex: 1;
+  padding: 16px;
+  transition: margin-left 0.3s;
+  background-color: white;
+}
+
+.MuiDrawer-paper {
+  width: 250px;
+  background-color: white; 
+}
+.Home{
+  background-color: white;
+  color: black;
+
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  padding: 10px 30px;
+  background: black;
+  border-bottom: 1px solid black;
+}
+
+.header-title {
+  flex: 1;
+  text-align: center;
+  margin: 0;
+  color: black;
+}
+html, body {
+  height: 100%;
+  margin: 0;
+  overflow: auto; /* Asegúrate de que no haya estilos que eviten el scroll */
+}
+
