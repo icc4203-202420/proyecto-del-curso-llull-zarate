@@ -94,6 +94,10 @@ const EventPicture = ({ eventId: propEventId, eventName: propEventName }) => {
       const fileType = uriParts[uriParts.length - 1];
       const mimeType = `image/${fileType === 'jpg' ? 'jpeg' : fileType}`;
 
+      // Generar un nombre de archivo único usando la fecha y hora actual
+      const timestamp = new Date().toISOString().replace(/[:.-]/g, ''); // Formatear para que sea un nombre de archivo válido
+      const uniqueFileName = `photo_${timestamp}.${fileType}`;
+
       const formData = new FormData();
       formData.append('event_picture[event_id]', eventId);
       formData.append('event_picture[user_id]', parseInt(userId, 10));
@@ -102,7 +106,7 @@ const EventPicture = ({ eventId: propEventId, eventName: propEventName }) => {
       formData.append('event_picture[picture]', {
         uri: image,
         type: mimeType,
-        name: `photo.${fileType}`,
+        name: uniqueFileName, // Usar el nombre de archivo único
       });
 
       await axios.post(`http://192.168.0.23:3001/api/v1/events/${eventId}/pictures`, formData, {
@@ -116,7 +120,7 @@ const EventPicture = ({ eventId: propEventId, eventName: propEventName }) => {
       setImage(null);
       setDescription('');
       setTaggedFriends([]);
-      fetchEventPictures(); // Actualizar la lista de imágenes después de subir la foto
+      fetchEventPictures(); 
     } catch (error) {
       console.error('Error uploading image:', error);
       Alert.alert('Error', 'Hubo un problema al subir la imagen.');
