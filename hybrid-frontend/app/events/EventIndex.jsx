@@ -124,19 +124,19 @@ const styles = StyleSheet.create({
   },
   button: {
     marginTop: 20,
-    backgroundColor: '#ffc107',
+    backgroundColor: '#000', 
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 8,
   },
   buttonText: {
-    color: '#000',
+    color: '#fff', // Texto blanco
     fontWeight: 'bold',
     textAlign: 'center',
   },
   retryButton: {
     marginTop: 20,
-    backgroundColor: '#f44336',
+    backgroundColor: '#333', 
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 8,

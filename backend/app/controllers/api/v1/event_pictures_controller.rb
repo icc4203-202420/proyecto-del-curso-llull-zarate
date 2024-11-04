@@ -8,7 +8,7 @@ class API::V1::EventPicturesController < ApplicationController
 
     json_response = @event_pictures.map do |event_picture|
       event_picture.as_json.merge(
-        image_url: url_for(event_picture.picture),
+        image_url: event_picture.picture.attached? ? url_for(event_picture.picture) : nil,
         user: {
           id: event_picture.user.id,
           handle: event_picture.user.handle
@@ -24,7 +24,7 @@ class API::V1::EventPicturesController < ApplicationController
     @event_picture.user_id = current_user.id
 
     if @event_picture.save
-      render_success({ message: 'Image successfully uploaded.', event_picture: @event_picture }, status: :created)
+      render_success({ message: 'Picture uploaded successfully', event_picture: @event_picture }, status: :created)
     else
       render_error(@event_picture.errors.full_messages)
     end
@@ -47,7 +47,7 @@ class API::V1::EventPicturesController < ApplicationController
   end
 
   def event_picture_params
-    params.require(:event_picture).permit(:description, :picture, :tagged_friends)
+    params.require(:event_picture).permit(:description, :picture, :event_id, :user_id, tagged_friends: [])
   end
 
   def verify_jwt_token

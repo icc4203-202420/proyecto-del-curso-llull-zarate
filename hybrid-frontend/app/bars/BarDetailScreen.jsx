@@ -160,13 +160,13 @@ const styles = StyleSheet.create({
   },
   checkInButton: {
     marginTop: 10,
-    backgroundColor: '#ffc107',
+    backgroundColor: '#000', // Fondo negro
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 8,
   },
   checkInButtonText: {
-    color: '#000',
+    color: '#fff', // Texto blanco
     fontWeight: 'bold',
     textAlign: 'center',
   },

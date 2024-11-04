@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TouchableOpacity, TextInput, Image, ActivityIndicator, StyleSheet, Alert, FlatList } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import axios from 'axios';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
+import EventPictureCard from './EventPictureCard'; 
 
 const EventPicture = ({ eventId: propEventId, eventName: propEventName }) => {
   const [image, setImage] = useState(null);
@@ -15,38 +16,44 @@ const EventPicture = ({ eventId: propEventId, eventName: propEventName }) => {
   const route = useRoute();
   const navigation = useNavigation();
 
-  const eventId = propEventId || route.params.eventId;
-  const eventName = propEventName || route.params.eventName;
+  const eventId = propEventId || route.params?.eventId;
+  const eventName = propEventName || route.params?.eventName;
+
+  const fetchEventPictures = useCallback(async () => {
+    try {
+      const response = await axios.get(`http://192.168.0.23:3001/api/v1/events/${eventId}/pictures`);
+      setPictures(response.data.event_pictures);
+    } catch (error) {
+      console.error('Error fetching event pictures:', error);
+    }
+  }, [eventId]);
 
   useEffect(() => {
     const fetchFriends = async () => {
-      const userId = await AsyncStorage.getItem('CURRENT_USER_ID');
-      if (userId) {
-        try {
+      try {
+        const userId = await SecureStore.getItemAsync('CURRENT_USER_ID');
+        if (userId) {
           const response = await axios.get(`http://192.168.0.23:3001/api/v1/users/${userId}`);
           setFriends(response.data.friends);
-        } catch (error) {
-          console.error('Error fetching user data:', error);
         }
-      }
-    };
-
-    const fetchEventPictures = async () => {
-      try {
-        const response = await axios.get(`http://192.168.0.23:3001/api/v1/events/${eventId}/pictures`);
-        setPictures(response.data.event_pictures);
       } catch (error) {
-        console.error('Error fetching event pictures:', error);
+        console.error('Error fetching user data:', error);
       }
     };
 
     fetchFriends();
     fetchEventPictures();
-  }, [eventId]);
+  }, [eventId, fetchEventPictures]);
 
   const selectImage = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permissionResult.granted) {
+      Alert.alert('Permiso requerido', 'Se necesita permiso para acceder a la galería.');
+      return;
+    }
+
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
       allowsEditing: true,
       aspect: [4, 3],
       quality: 1,
@@ -59,7 +66,9 @@ const EventPicture = ({ eventId: propEventId, eventName: propEventName }) => {
 
   const toggleTaggedFriend = (friendId) => {
     setTaggedFriends((prevTaggedFriends) =>
-      prevTaggedFriends.includes(friendId) ? prevTaggedFriends.filter(id => id !== friendId) : [...prevTaggedFriends, friendId]
+      prevTaggedFriends.includes(friendId)
+        ? prevTaggedFriends.filter((id) => id !== friendId)
+        : [...prevTaggedFriends, friendId]
     );
   };
 
@@ -68,42 +77,46 @@ const EventPicture = ({ eventId: propEventId, eventName: propEventName }) => {
       Alert.alert('Error', 'Por favor selecciona una imagen y proporciona una descripción.');
       return;
     }
+
     setUploading(true);
+
     try {
-      const userId = await AsyncStorage.getItem('CURRENT_USER_ID');
-      const uriParts = image.split('.');
-      const fileType = uriParts[uriParts.length - 1];
+      const userId = await SecureStore.getItemAsync('CURRENT_USER_ID');
+      const JWT_TOKEN = await SecureStore.getItemAsync('JWT_TOKEN');
 
-      const formData = new FormData();
-      formData.append("event_picture[event_id]", eventId);
-      formData.append("event_picture[user_id]", parseInt(userId, 10));
-      formData.append("event_picture[description]", description);
-      formData.append("event_picture[tagged_friends]", JSON.stringify(taggedFriends));
-      formData.append("event_picture[picture]", {
-        uri: image,
-        type: `image/${fileType}`,
-        name: `photo.${fileType}`,
-      });
-
-      const JWT_TOKEN = await AsyncStorage.getItem('JWT_TOKEN');
-      if (!JWT_TOKEN) {
-        Alert.alert('Error', 'Token de autenticación no encontrado');
+      if (!JWT_TOKEN || !userId) {
+        Alert.alert('Error', 'Token de autenticación o ID de usuario no encontrado');
         setUploading(false);
         return;
       }
 
-      await axios.post(`http://localhost:3001/api/v1/events/${eventId}/pictures`, formData, {
+      const uriParts = image.split('.');
+      const fileType = uriParts[uriParts.length - 1];
+      const mimeType = `image/${fileType === 'jpg' ? 'jpeg' : fileType}`;
+
+      const formData = new FormData();
+      formData.append('event_picture[event_id]', eventId);
+      formData.append('event_picture[user_id]', parseInt(userId, 10));
+      formData.append('event_picture[description]', description);
+      formData.append('event_picture[tagged_friends]', JSON.stringify(taggedFriends));
+      formData.append('event_picture[picture]', {
+        uri: image,
+        type: mimeType,
+        name: `photo.${fileType}`,
+      });
+
+      await axios.post(`http://192.168.0.23:3001/api/v1/events/${eventId}/pictures`, formData, {
         headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${JWT_TOKEN}`,
-        }
+          'Content-Type': 'multipart/form-data',
+          Authorization: `${JWT_TOKEN}`,
+        },
       });
 
       Alert.alert('Éxito', 'La foto se ha subido exitosamente.');
       setImage(null);
       setDescription('');
       setTaggedFriends([]);
-      fetchEventPictures(); 
+      fetchEventPictures(); // Actualizar la lista de imágenes después de subir la foto
     } catch (error) {
       console.error('Error uploading image:', error);
       Alert.alert('Error', 'Hubo un problema al subir la imagen.');
@@ -140,7 +153,7 @@ const EventPicture = ({ eventId: propEventId, eventName: propEventName }) => {
             <TouchableOpacity
               style={[
                 styles.tagItem,
-                taggedFriends.includes(item.id) && styles.tagItemSelected
+                taggedFriends.includes(item.id) && styles.tagItemSelected,
               ]}
               onPress={() => toggleTaggedFriend(item.id)}
             >
@@ -159,6 +172,12 @@ const EventPicture = ({ eventId: propEventId, eventName: propEventName }) => {
       </TouchableOpacity>
 
       {uploading && <ActivityIndicator size="large" color="#000" style={styles.loader} />}
+
+      <FlatList
+        data={pictures}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => <EventPictureCard picture={item} />}
+      />
     </View>
   );
 };
