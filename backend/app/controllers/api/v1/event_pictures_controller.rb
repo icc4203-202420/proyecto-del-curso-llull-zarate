@@ -1,7 +1,5 @@
 class API::V1::EventPicturesController < ApplicationController
-  include ImageProcessing
   include Authenticable
-
   before_action :set_event
   before_action :verify_jwt_token, only: [:create, :destroy]
 
@@ -18,7 +16,7 @@ class API::V1::EventPicturesController < ApplicationController
       )
     end
 
-    render json: { event_pictures: json_response }, status: :ok
+    render_success({ event_pictures: json_response })
   end
 
   def create
@@ -26,18 +24,18 @@ class API::V1::EventPicturesController < ApplicationController
     @event_picture.user_id = current_user.id
 
     if @event_picture.save
-      render json: { message: 'Image successfully uploaded.', event_picture: @event_picture }, status: :created
+      render_success({ message: 'Image successfully uploaded.', event_picture: @event_picture }, status: :created)
     else
-      render json: { errors: @event_picture.errors.full_messages }, status: :unprocessable_entity
+      render_error(@event_picture.errors.full_messages)
     end
   end
 
   def destroy
     @event_picture = @event.event_pictures.find(params[:id])
     if @event_picture.destroy
-      render json: { message: 'Image successfully deleted.' }, status: :no_content
+      render_success({ message: 'Image successfully deleted.' }, status: :no_content)
     else
-      render json: { errors: @event_picture.errors.full_messages }, status: :unprocessable_entity
+      render_error(@event_picture.errors.full_messages)
     end
   end
 
@@ -45,10 +43,26 @@ class API::V1::EventPicturesController < ApplicationController
 
   def set_event
     @event = Event.find_by(id: params[:event_id])
-    render json: { error: 'Event not found' }, status: :not_found unless @event
+    render_error('Event not found', status: :not_found) unless @event
   end
 
   def event_picture_params
     params.require(:event_picture).permit(:description, :picture, :tagged_friends)
+  end
+
+  def verify_jwt_token
+    authenticate_user!
+    unless current_user
+      Rails.logger.warn("Unauthorized access attempt")
+      head :unauthorized
+    end
+  end
+
+  def render_success(data, status: :ok)
+    render json: data, status: status
+  end
+
+  def render_error(errors, status: :unprocessable_entity)
+    render json: { errors: Array(errors) }, status: status
   end
 end

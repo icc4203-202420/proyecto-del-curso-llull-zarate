@@ -2,48 +2,59 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, Button, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 
-function FriendShow() {
+const FriendShow = () => {
   const route = useRoute();
   const navigation = useNavigation();
   const { id } = route.params;
   const [user, setUser] = useState(null);
+  const [currentUserId, setCurrentUserId] = useState(null);
   const [isFriend, setIsFriend] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchUserId = async () => {
-      const storedUserId = await AsyncStorage.getItem('CURRENT_USER_ID');
-      if (storedUserId) {
-        setCurrentUserId(storedUserId);
+    const fetchCurrentUserId = async () => {
+      try {
+        const storedUserId = await SecureStore.getItemAsync('CURRENT_USER_ID');
+        if (storedUserId) {
+          setCurrentUserId(storedUserId);
+          console.log('Fetched CURRENT_USER_ID:', storedUserId);
+        } else {
+          console.warn('CURRENT_USER_ID not found in SecureStore');
+        }
+      } catch (error) {
+        console.error('Error fetching CURRENT_USER_ID:', error);
       }
     };
-    fetchUserId();
+    fetchCurrentUserId();
   }, []);
 
   useEffect(() => {
-    axios.get(`http://localhost:3001/api/v1/users/${id}`)
-      .then(response => {
-        setUser(response.data.user);
-      })
-      .catch(error => {
-        console.error('', error);
-        setError('');
-      });
+    if (id) {
+      axios.get(`http://192.168.0.23:3001/api/v1/users/${id}`)
+        .then(response => {
+          setUser(response.data.user);
+          console.log('User data fetched:', response.data.user);
+        })
+        .catch(error => {
+          console.error('Error fetching user data:', error);
+          setError('Error fetching user data');
+        });
+    }
   }, [id]);
 
   useEffect(() => {
-    if (currentUserId) {
-      axios.get(`http://localhost:3001/api/v1/users/${currentUserId}/friendships/${id}`)
+    if (currentUserId && id) {
+      axios.get(`http://192.168.0.23:3001/api/v1/users/${currentUserId}/friendships/${id}`)
         .then(response => {
           setIsFriend(response.data.is_friend);
+          console.log('Friendship status:', response.data.is_friend);
         })
         .catch(error => {
-          console.error('', error);
-          setError('');
+          console.error('Error checking friendship:', error);
+          setError('Error checking friendship');
         });
     }
   }, [id, currentUserId]);
@@ -51,20 +62,15 @@ function FriendShow() {
   const handleAddFriend = async () => {
     if (!currentUserId) return;
     setLoading(true);
-    setError('');
-
     try {
-      await axios.post(`http://localhost:3001/api/v1/users/${currentUserId}/friendships`, {
-        friendship: { friend_id: id, bar_id: 1 }
+      await axios.post(`http://192.168.0.23:3001/api/v1/users/${currentUserId}/friendships`, {
+        friendship: { friend_id: id }
       });
-      setIsFriend(true); // Actualizamos el estado a 'ya son amigos' al añadir
+      setIsFriend(true);
+      console.log('Friend added successfully');
     } catch (error) {
-      console.error('Error adding friend:', error.response || error);
-      if (error.response && error.response.data.error === "Already friends") {
-        setError("You are already friends with this user");
-      } else {
-        setError("Error adding friend");
-      }
+      console.error('Error adding friend:', error);
+      setError('Error adding friend');
     } finally {
       setLoading(false);
     }
@@ -77,9 +83,9 @@ function FriendShow() {
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
         <Text style={styles.backText}>{"< Back"}</Text>
       </TouchableOpacity>
-      
+
       <Text style={styles.username}>@{user.handle}</Text>
-      
+
       <View style={styles.userInfo}>
         <Text style={styles.userName}>{user.first_name} {user.last_name}</Text>
       </View>
@@ -96,7 +102,7 @@ function FriendShow() {
       {loading && <ActivityIndicator size="small" color="blue" style={styles.loadingIndicator} />}
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {

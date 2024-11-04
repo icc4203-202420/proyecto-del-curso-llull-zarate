@@ -14,7 +14,7 @@ const Profile = () => {
         const JWT_TOKEN = await AsyncStorage.getItem('JWT_TOKEN');
 
         if (JWT_TOKEN) {
-          const response = await axios.get('http://localhost:3001/api/v1/users/me', { 
+          const response = await axios.get('http://192.168.0.23:3001/api/v1/users/me', { 
             headers: { Authorization: `Bearer ${JWT_TOKEN}` },
           });
           setUser(response.data.user); 

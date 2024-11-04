@@ -1,19 +1,19 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons'; 
+import { Ionicons } from '@expo/vector-icons';
 
 const Home = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <TouchableOpacity
         style={styles.profileButton}
-        onPress={() => navigation.navigate('Profile')} 
+        onPress={() => navigation.navigate('Profile')}
       >
         <Ionicons name="person-outline" size={30} color="#000" />
       </TouchableOpacity>
 
       <Text style={styles.title}>dRINK.io</Text>
-      
+
       <TouchableOpacity
         style={styles.button}
         onPress={() => navigation.navigate('BeersList')}
@@ -34,15 +34,13 @@ const Home = ({ navigation }) => {
       >
         <Text style={styles.buttonText}>Events</Text>
       </TouchableOpacity>
-      
+
       <TouchableOpacity
         style={styles.button}
         onPress={() => navigation.navigate('FriendIndex')}
       >
         <Text style={styles.buttonText}>Friends</Text>
       </TouchableOpacity>
-
-       
     </View>
   );
 };
@@ -76,13 +74,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   profileButton: {
-    position: 'absolute', 
-    top: 20, 
-    right: 20, 
-    backgroundColor: '#fff', 
-    borderRadius: 50, 
-    padding: 10, 
-    elevation: 3, 
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    backgroundColor: '#fff',
+    borderRadius: 50,
+    padding: 10,
+    elevation: 3,
   },
 });
 

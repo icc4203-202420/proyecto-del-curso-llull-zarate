@@ -14,7 +14,7 @@ const EventIndex = () => {
   useEffect(() => {
     const fetchEventDetails = async () => {
       try {
-        const response = await axios.get(`http://localhost:3001/api/v1/events/${eventId}`);
+        const response = await axios.get(`http://192.168.0.23:3001/api/v1/events/${eventId}`);
         setEventDetails(response.data.event);
         setError(null);
       } catch (err) {

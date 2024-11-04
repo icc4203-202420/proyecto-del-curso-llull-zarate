@@ -9,7 +9,7 @@ const EventList = () => {
 
   useEffect(() => {
     
-    axios.get('http://localhost:3001/api/v1/events')
+    axios.get('http://192.168.0.23:3001/api/v1/events')
       .then(response => {
         setEvents(response.data.events);
       })

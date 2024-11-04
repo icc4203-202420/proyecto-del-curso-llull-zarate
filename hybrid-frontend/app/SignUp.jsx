@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, TextInput, Button, Text, StyleSheet, Alert, ScrollView } from 'react-native';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 
 const SignUp = () => {
   const [firstName, setFirstName] = useState('');
@@ -13,42 +13,50 @@ const SignUp = () => {
   const [passwordConfirmation, setPasswordConfirmation] = useState('');
   const navigation = useNavigation();
 
-  const handleSubmit = () => {
-    
+  const handleSubmit = async () => {
     if (!firstName || !lastName || !email || !handle || !password || !passwordConfirmation) {
       Alert.alert('Error', 'Por favor completa todos los campos.');
       return;
     }
 
-   
     if (password !== passwordConfirmation) {
       Alert.alert('Error', 'Las contraseñas no coinciden.');
       return;
     }
 
-    axios.post('http://localhost:3001/api/v1/signup', { 
-      user: {
-        first_name: firstName,
-        last_name: lastName,
-        email,
-        handle,
-        password,
-      },
-    })
-      .then(response => {
+    try {
+      const response = await axios.post('http://192.168.0.23:3001/api/v1/signup', {
+        user: {
+          first_name: firstName,
+          last_name: lastName,
+          email,
+          handle,
+          password,
+        },
+      });
+
+      console.log('Response data:', response.data); 
+
+      if (response.status === 200) {
         const JWT_TOKEN = response.headers['authorization'];
-        const CURRENT_USER_ID = response.data.data.id;
+        const CURRENT_USER_ID = response.data.data?.id || response.data.id;
+        console.log('CURRENT_USER_ID:', CURRENT_USER_ID); // Verifica que el ID no sea undefined o null
+
 
         if (JWT_TOKEN) {
-          AsyncStorage.setItem('JWT_TOKEN', JWT_TOKEN);
+          await SecureStore.setItemAsync('JWT_TOKEN', JWT_TOKEN);
+          console.log('JWT_TOKEN saved successfully');
         }
 
         if (CURRENT_USER_ID) {
-          AsyncStorage.setItem('CURRENT_USER_ID', CURRENT_USER_ID.toString());
+          await SecureStore.setItemAsync('CURRENT_USER_ID', CURRENT_USER_ID.toString());
+          console.log('CURRENT_USER_ID saved successfully:', CURRENT_USER_ID);
+        } else {
+          console.warn('CURRENT_USER_ID is not valid:', CURRENT_USER_ID);
         }
+        
 
         Alert.alert('Registro exitoso');
-        // Limpiar campos
         setFirstName('');
         setLastName('');
         setEmail('');
@@ -56,18 +64,17 @@ const SignUp = () => {
         setPassword('');
         setPasswordConfirmation('');
         navigation.navigate('Login');
-      })
-      .catch(error => {
-        console.error('Error durante el registro:', error.response.data); 
-        if (error.response && error.response.status === 422) {
-    
-          const errors = error.response.data.errors;
-          const errorMessage = Object.values(errors).flat().join('\n');
-          Alert.alert('Error durante el registro', errorMessage || 'Por favor verifica tu información.');
-        } else {
-          Alert.alert('Error durante el registro', error.response.data.status.message || 'Por favor verifica tu información.');
-        }
-      });
+      }
+    } catch (error) {
+      console.error('Error durante el registro:', error.response?.data || error);
+      if (error.response && error.response.status === 422) {
+        const errors = error.response.data.errors;
+        const errorMessage = Object.values(errors).flat().join('\n');
+        Alert.alert('Error durante el registro', errorMessage || 'Por favor verifica tu información.');
+      } else {
+        Alert.alert('Error durante el registro', error.response?.data?.status?.message || 'Por favor verifica tu información.');
+      }
+    }
   };
 
   return (

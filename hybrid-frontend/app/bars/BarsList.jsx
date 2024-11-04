@@ -10,7 +10,7 @@ const BarList = ({ navigation }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    axios.get('http://localhost:3001/api/v1/bars')
+    axios.get('http://192.168.0.23:3001/api/v1/bars')
       .then(response => {
         setBars(response.data.bars);
         setFilteredBars(response.data.bars); 

@@ -18,7 +18,7 @@ export default function EventsUsers() {
             const currentUserId = await AsyncStorage.getItem('CURRENT_USER_ID');
 
             
-            axios.get(`http://localhost:3001/api/v1/events/${id}`)
+            axios.get(`http://192.168.0.23:3001/api/v1/events/${id}`)
                 .then(response => {
                     setEvent(response.data);
                     setUsers(response.data.users);
@@ -27,7 +27,7 @@ export default function EventsUsers() {
 
             l
             if (currentUserId) {
-                axios.get(`http://localhost:3001/api/v1/users/${currentUserId}/friendships`)
+                axios.get(`http://192.168.0.23:3001/api/v1/users/${currentUserId}/friendships`)
                     .then(response => {
                         setFriends(response.data.friends.map(friend => friend.id));
                     })
