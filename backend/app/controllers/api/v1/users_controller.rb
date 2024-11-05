@@ -2,6 +2,14 @@ class API::V1::UsersController < ApplicationController
   respond_to :json
   before_action :set_user, only: [:show, :update]
 
+  def update_push_token
+    if current_user.update(expo_push_token: params[:expo_push_token])
+      head :ok
+    else
+      render json: { error: 'No se pudo actualizar el push token' }, status: :unprocessable_entity
+    end
+  end
+
   def index
     @users = User.includes(:reviews, :address).all
     render json: { users: @users }, status: :ok

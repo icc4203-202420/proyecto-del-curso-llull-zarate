@@ -3,6 +3,7 @@ import { View, TextInput, Button, Text, StyleSheet, Alert, ScrollView } from 're
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import * as SecureStore from 'expo-secure-store';
+import { savePushToken } from './notifications';
 
 const SignUp = () => {
   const [firstName, setFirstName] = useState('');
@@ -54,7 +55,7 @@ const SignUp = () => {
         } else {
           console.warn('CURRENT_USER_ID is not valid:', CURRENT_USER_ID);
         }
-        
+        await savePushToken();
 
         Alert.alert('Registro exitoso');
         setFirstName('');

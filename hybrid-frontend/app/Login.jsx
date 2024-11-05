@@ -3,6 +3,7 @@ import { View, TextInput, Button, Text, StyleSheet, Alert, TouchableOpacity } fr
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import * as SecureStore from 'expo-secure-store';
+import { savePushToken } from './notifications';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -31,6 +32,7 @@ const Login = () => {
       if (JWT_TOKEN && CURRENT_USER_ID) {
         await SecureStore.setItemAsync('JWT_TOKEN', JWT_TOKEN);
         await SecureStore.setItemAsync('CURRENT_USER_ID', CURRENT_USER_ID.toString());
+        await savePushToken();
 
         Alert.alert('Inicio de sesión exitoso', 'Bienvenido!');
         console.log('Navegando a Home');

@@ -3,6 +3,7 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import TokenStorage from './app/TokenStorage'; 
+import NotificationPusher from './app/NotificationPusher';
 
 
 import Home from './app/Home';
@@ -28,7 +29,7 @@ import FriendShow from './app/users/FriendShow';
 
 import EventList from './app/events/EventList';
 import EventIndex from './app/events/EventIndex';
-import EventShow from './app/events/EventShow';
+
 import EventPicture from './app/events/EventPicture';
 
 const Stack = createStackNavigator();
@@ -36,6 +37,7 @@ const Stack = createStackNavigator();
 export default function App() {
   return (
     <NavigationContainer>
+      <NotificationPusher />
       <Stack.Navigator initialRouteName="TokenStorage">
         
       
@@ -58,7 +60,6 @@ export default function App() {
         <Stack.Screen name="FriendShow" component={FriendShow} options={{ title: 'Friend Details' }} />
         <Stack.Screen name="EventList" component={EventList} />
         <Stack.Screen name="EventIndex" component={EventIndex} options={{ title: 'Event Details' }} />
-        <Stack.Screen name="EventShow" component={EventShow} options={{ title: 'Event Details' }} />
         <Stack.Screen name="EventPicture" component={EventPicture} options={{ title: 'Upload Photo' }} />
 
       </Stack.Navigator>

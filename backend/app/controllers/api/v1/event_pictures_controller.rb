@@ -20,13 +20,13 @@ class API::V1::EventPicturesController < ApplicationController
   end
 
   def create
-    @event_picture = @event.event_pictures.new(event_picture_params)
-    @event_picture.user_id = current_user.id
+    @event_picture = EventPicture.new(event_picture_params)
 
     if @event_picture.save
-      render_success({ message: 'Picture uploaded successfully', event_picture: @event_picture }, status: :created)
+      notify_tagged_friends(@event_picture) if @event_picture.tagged_friends.present?
+      render json: { message: 'Picture uploaded successfully', event_picture: @event_picture }, status: :created
     else
-      render_error(@event_picture.errors.full_messages)
+      render json: { errors: @event_picture.errors.full_messages }, status: :unprocessable_entity
     end
   end
 
@@ -64,5 +64,31 @@ class API::V1::EventPicturesController < ApplicationController
 
   def render_error(errors, status: :unprocessable_entity)
     render json: { errors: Array(errors) }, status: status
+  end
+
+  def notify_tagged_friends(event_picture)
+    friend_ids = event_picture.tagged_friends
+    friends = User.where(id: friend_ids)
+
+    friends.each do |friend|
+      notification_sent = false
+
+      if friend.expo_push_token.present?
+        notification_sent = PushNotificationService.send_notification(
+          to: friend.expo_push_token,
+          title: "¡Has sido etiquetado en una foto!",
+          body: "#{event_picture.user.handle} te ha etiquetado en una foto.",
+          data: { screen: "EventImageShow", event_id: event_picture.event_id, picture_id: event_picture.id }
+        )
+
+        if notification_sent
+          Rails.logger.info("Notificación enviada con éxito a #{friend.handle}")
+        else
+          Rails.logger.error("Error al enviar la notificación a #{friend.handle}")
+        end
+      else
+        Rails.logger.warn("El usuario #{friend.handle} no tiene expo_push_token, no se envió notificación")
+      end
+    end
   end
 end

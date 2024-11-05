@@ -20,9 +20,6 @@ const FriendShow = () => {
         const storedUserId = await SecureStore.getItemAsync('CURRENT_USER_ID');
         if (storedUserId) {
           setCurrentUserId(storedUserId);
-          console.log('Fetched CURRENT_USER_ID:', storedUserId);
-        } else {
-          console.warn('CURRENT_USER_ID not found in SecureStore');
         }
       } catch (error) {
         console.error('Error fetching CURRENT_USER_ID:', error);
@@ -36,7 +33,6 @@ const FriendShow = () => {
       axios.get(`http://192.168.0.23:3001/api/v1/users/${id}`)
         .then(response => {
           setUser(response.data.user);
-          console.log('User data fetched:', response.data.user);
         })
         .catch(error => {
           console.error('Error fetching user data:', error);
@@ -50,7 +46,6 @@ const FriendShow = () => {
       axios.get(`http://192.168.0.23:3001/api/v1/users/${currentUserId}/friendships/${id}`)
         .then(response => {
           setIsFriend(response.data.is_friend);
-          console.log('Friendship status:', response.data.is_friend);
         })
         .catch(error => {
           console.error('Error checking friendship:', error);
@@ -67,7 +62,6 @@ const FriendShow = () => {
         friendship: { friend_id: id }
       });
       setIsFriend(true);
-      console.log('Friend added successfully');
     } catch (error) {
       console.error('Error adding friend:', error);
       setError('Error adding friend');

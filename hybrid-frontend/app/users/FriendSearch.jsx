@@ -17,9 +17,6 @@ const FriendSearch = () => {
         const storedUserId = await SecureStore.getItemAsync('CURRENT_USER_ID');
         if (storedUserId) {
           setCurrentUserId(storedUserId);
-          console.log('Fetched CURRENT_USER_ID:', storedUserId);
-        } else {
-          console.warn('CURRENT_USER_ID not found in SecureStore');
         }
       } catch (error) {
         console.error('Error fetching CURRENT_USER_ID:', error);
@@ -34,7 +31,6 @@ const FriendSearch = () => {
         setLoading(true);
         try {
           const response = await axios.get(`http://192.168.0.23:3001/api/v1/users`);
-          console.log('Datos de usuarios obtenidos:', response.data.users);
           const filteredUsers = response.data.users.filter(user => user.id !== parseInt(currentUserId));
           setUsers(filteredUsers);
         } catch (error) {

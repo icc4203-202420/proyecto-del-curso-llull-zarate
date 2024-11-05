@@ -2,6 +2,7 @@ class EventPicture < ApplicationRecord
   belongs_to :event
   belongs_to :user
   has_one_attached :picture
+
   after_commit :save_picture_to_public_directory, on: [:create]
 
   def url
@@ -14,14 +15,15 @@ class EventPicture < ApplicationRecord
     return unless picture.attached?
 
     images_dir = Rails.root.join("public", "event_images", "event_#{event.id}")
-
     FileUtils.mkdir_p(images_dir) unless Dir.exist?(images_dir)
 
-    picture_path = Rails.root.join("tmp", picture.filename.to_s)
+    unique_filename = "event_#{event.id}_#{SecureRandom.uuid}_#{picture.filename}"
+    picture_path = Rails.root.join("tmp", unique_filename)
+
     File.open(picture_path, 'wb') do |file|
       file.write(picture.download)
     end
 
-    FileUtils.mv(picture_path, images_dir.join(picture.filename.to_s))
+    FileUtils.mv(picture_path, images_dir.join(unique_filename))
   end
 end
