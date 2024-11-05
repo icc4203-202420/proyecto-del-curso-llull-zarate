@@ -8,8 +8,8 @@ const EventList = () => {
   const navigation = useNavigation();
 
   useEffect(() => {
-    // Aquí iría la llamada a la API para obtener los eventos
-    axios.get('http://localhost:3001/api/v1/events')
+    
+    axios.get('http://192.168.0.23:3001/api/v1/events')
       .then(response => {
         setEvents(response.data.events);
       })
@@ -19,7 +19,7 @@ const EventList = () => {
   }, []);
 
   const handleEventSelect = (eventId) => {
-    // Al seleccionar un evento, navegar a EventIndex y pasar el eventId
+    
     navigation.navigate('EventIndex', { eventId });
   };
 

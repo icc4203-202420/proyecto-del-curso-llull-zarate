@@ -1,94 +1,93 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import { View, Text, TextInput, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, TextInput, FlatList, ActivityIndicator, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 import { useNavigation } from '@react-navigation/native';
 
-function FriendSearch() {
-  const [friends, setFriends] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [currentUserId, setCurrentUserId] = useState('');
+const FriendSearch = () => {
+  const [users, setUsers] = useState([]);
+  const [searchText, setSearchText] = useState('');
+  const [currentUserId, setCurrentUserId] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const navigation = useNavigation();
 
   useEffect(() => {
-    const fetchUserId = async () => {
-      const storedUserId = await AsyncStorage.getItem('CURRENT_USER_ID');
-      if (storedUserId) {
-        setCurrentUserId(storedUserId);
-      } else {
-        setError('CURRENT_USER_ID not found in AsyncStorage');
+    const fetchCurrentUserId = async () => {
+      try {
+        const storedUserId = await SecureStore.getItemAsync('CURRENT_USER_ID');
+        if (storedUserId) {
+          setCurrentUserId(storedUserId);
+        }
+      } catch (error) {
+        console.error('Error fetching CURRENT_USER_ID:', error);
       }
     };
-    fetchUserId();
+    fetchCurrentUserId();
   }, []);
 
   useEffect(() => {
-    if (currentUserId) {
-      setLoading(true);
-      setError('');
-      axios.get('http://localhost:3001/api/v1/users')
-        .then(response => {
-          const filteredFriends = response.data.users.filter(user => user.id !== parseInt(currentUserId));
-          setFriends(filteredFriends);
-        })
-        .catch(error => {
-          console.error('Error fetching friends:', error);
-          setError('Error fetching friends');
-        })
-        .finally(() => {
+    const fetchUsers = async () => {
+      if (currentUserId) {
+        setLoading(true);
+        try {
+          const response = await axios.get(`http://192.168.0.23:3001/api/v1/users`);
+          const filteredUsers = response.data.users.filter(user => user.id !== parseInt(currentUserId));
+          setUsers(filteredUsers);
+        } catch (error) {
+          console.error('Error fetching users:', error);
+        } finally {
           setLoading(false);
-        });
-    }
+        }
+      }
+    };
+    fetchUsers();
   }, [currentUserId]);
 
-  const filteredFriends = useMemo(() => {
-    return friends.filter(friend =>
-      friend.handle.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [friends, searchTerm]);
+  const filteredUsers = searchText.trim() === '' ? users : users.filter(user =>
+    user.handle.toLowerCase().includes(searchText.toLowerCase())
+  );
 
   return (
-    <View style={{ flex: 1, padding: 20 }}>
+    <View style={styles.container}>
       <TextInput
         style={styles.searchInput}
         placeholder="Search friends..."
-        value={searchTerm}
-        onChangeText={setSearchTerm}
+        value={searchText}
+        onChangeText={setSearchText}
       />
-
-      {error && <Text style={{ color: 'red' }}>{error}</Text>}
-
       {loading ? (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" color="black" />
-        </View>
+        <ActivityIndicator size="large" color="#000" />
       ) : (
         <FlatList
-          data={filteredFriends}
+          data={filteredUsers}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.friendItem}
-              onPress={() => navigation.navigate('FriendShow', { id: item.id })}
-            >
-              <Text style={styles.friendName}>{item.first_name} {item.last_name}</Text>
-              <Text style={styles.friendHandle}>@{item.handle}</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('FriendShow', { id: item.id })}>
+              <View style={styles.friendItem}>
+                <Text style={styles.friendName}>{item.first_name} {item.last_name}</Text>
+                <Text style={styles.friendHandle}>@{item.handle}</Text>
+              </View>
             </TouchableOpacity>
           )}
+          ListEmptyComponent={<Text style={styles.noResultsText}>No users found.</Text>}
         />
       )}
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+  },
   searchInput: {
-    backgroundColor: '#f0f0f0',
+    height: 40,
+    borderColor: '#ccc',
+    borderWidth: 1,
     borderRadius: 8,
-    padding: 10,
-    marginVertical: 10,
+    paddingHorizontal: 10,
+    marginBottom: 20,
   },
   friendItem: {
     padding: 15,
@@ -102,6 +101,10 @@ const styles = StyleSheet.create({
   },
   friendHandle: {
     fontSize: 14,
+    color: 'gray',
+  },
+  noResultsText: {
+    textAlign: 'center',
     color: 'gray',
   },
 });

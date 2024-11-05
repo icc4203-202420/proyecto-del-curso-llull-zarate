@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Button, StyleSheet, Alert } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store'; // Usar SecureStore
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 
@@ -9,36 +9,35 @@ const Logout = () => {
 
   const handleLogout = async () => {
     try {
-      const JWT_TOKEN = await AsyncStorage.getItem('JWT_TOKEN');
+      const JWT_TOKEN = await SecureStore.getItemAsync('JWT_TOKEN');
 
       if (!JWT_TOKEN) {
-        Alert.alert('Error', 'No token found, please log in again.');
+        Alert.alert('Error', 'No se encontró el token, por favor inicia sesión de nuevo.');
         return;
       }
 
-      // Llamada al endpoint para cerrar sesión
-      await axios.delete('http://localhost:3001/api/v1/logout', { 
-        headers: { Authorization: `Bearer ${JWT_TOKEN}` }, // Asegúrate de usar "Bearer" si tu API lo requiere
+      
+      await axios.delete('http://192.168.0.23:3001/api/v1/logout', {
+        headers: { Authorization: `${JWT_TOKEN}` }, 
       });
 
-      // Eliminar JWT_TOKEN y CURRENT_USER_ID del AsyncStorage
-      await AsyncStorage.removeItem('JWT_TOKEN');
-      await AsyncStorage.removeItem('CURRENT_USER_ID');
+      
+      await SecureStore.deleteItemAsync('JWT_TOKEN');
+      await SecureStore.deleteItemAsync('CURRENT_USER_ID');
 
-      Alert.alert('Success', 'Logged out successfully!', [
-        { text: 'OK', onPress: () => navigation.navigate('Login') } // Navegar después de que el usuario cierre la alerta
-      ]);
+      Alert.alert('¡Cierre de sesión exitoso!');
+      navigation.navigate('Login'); 
     } catch (error) {
-      console.error('Error logging out:', error);
-      Alert.alert('Error', 'Failed to log out. Please try again.'); // Mensaje más claro
+      console.error('Error cerrando sesión:', error);
+      Alert.alert('Error', 'Hubo un problema al cerrar sesión. Por favor, intenta de nuevo.');
     }
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Log Out</Text>
-      <Text style={styles.subtitle}>Are you sure you want to log out?</Text>
-      <Button title="Log Out" onPress={handleLogout} color="#FF8603" />
+      <Text style={styles.subtitle}>¿Estás seguro de que quieres cerrar sesión?</Text>
+      <Button title="Cerrar sesión" onPress={handleLogout} color="#FF8603" />
     </View>
   );
 };

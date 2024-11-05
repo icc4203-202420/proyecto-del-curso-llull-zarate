@@ -1,53 +1,92 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import axios from 'axios';
 import { useRoute, useNavigation } from '@react-navigation/native';
 
 const EventIndex = () => {
   const [eventDetails, setEventDetails] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const route = useRoute();
   const { eventId } = route.params;
   const navigation = useNavigation();
 
   useEffect(() => {
-    axios.get(`http://localhost:3001/api/v1/events/${eventId}`)
-      .then(response => {
+    const fetchEventDetails = async () => {
+      try {
+        const response = await axios.get(`http://192.168.0.23:3001/api/v1/events/${eventId}`);
         setEventDetails(response.data.event);
-      })
-      .catch(error => console.error('Error fetching event details:', error));
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching event details:', err);
+        setError('Error al cargar los detalles del evento.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEventDetails();
   }, [eventId]);
 
-  if (!eventDetails) {
+  if (loading) {
     return (
       <View style={styles.container}>
+        <ActivityIndicator size="large" color="#000" />
         <Text style={styles.loadingText}>Cargando detalles del evento...</Text>
       </View>
     );
   }
 
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>{error}</Text>
+        <TouchableOpacity style={styles.retryButton} onPress={() => setLoading(true) && fetchEventDetails()}>
+          <Text style={styles.buttonText}>Reintentar</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  if (!eventDetails) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.loadingText}>Detalles del evento no disponibles.</Text>
+      </View>
+    );
+  }
+
+  const formattedDate = new Date(eventDetails.date).toLocaleDateString('es-ES', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+
   return (
     <View style={styles.container}>
       <Text style={styles.eventName}>{eventDetails.name}</Text>
-      <Text style={styles.eventDate}>Fecha: {eventDetails.date}</Text>
+      <Text style={styles.eventDate}>Fecha: {formattedDate}</Text>
       <Text style={styles.eventDescription}>Descripción: {eventDetails.description}</Text>
 
-      <TouchableOpacity
-        style={styles.button}
+      <CustomButton
+        text="Ver eventos en este bar (check-in)"
         onPress={() => navigation.navigate('BarDetailScreen', { barId: eventDetails.bar_id })}
-      >
-        <Text style={styles.buttonText}>Ver eventos en este bar(check-in)</Text>
-      </TouchableOpacity>
+      />
 
-      {/* Botón para navegar a EventPicture */}
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => navigation.navigate('EventPicture', { eventId: eventId, eventName: eventDetails.name })}
-      >
-        <Text style={styles.buttonText}>Subir fotos del evento</Text>
-      </TouchableOpacity>
+      <CustomButton
+        text="Subir fotos del evento"
+        onPress={() => navigation.navigate('EventPicture', { eventId, eventName: eventDetails.name })}
+      />
     </View>
   );
 };
+
+const CustomButton = ({ text, onPress }) => (
+  <TouchableOpacity style={styles.button} onPress={onPress}>
+    <Text style={styles.buttonText}>{text}</Text>
+  </TouchableOpacity>
+);
 
 const styles = StyleSheet.create({
   container: {
@@ -59,7 +98,13 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#666',
     textAlign: 'center',
-    marginTop: 50,
+    marginTop: 20,
+  },
+  errorText: {
+    fontSize: 18,
+    color: 'red',
+    textAlign: 'center',
+    marginTop: 20,
   },
   eventName: {
     fontSize: 24,
@@ -79,15 +124,22 @@ const styles = StyleSheet.create({
   },
   button: {
     marginTop: 20,
-    backgroundColor: '#ffc107',
-    paddingVertical: 10,
+    backgroundColor: '#000', 
+    paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 8,
   },
   buttonText: {
-    color: '#000',
+    color: '#fff', // Texto blanco
     fontWeight: 'bold',
     textAlign: 'center',
+  },
+  retryButton: {
+    marginTop: 20,
+    backgroundColor: '#333', 
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
   },
 });
 

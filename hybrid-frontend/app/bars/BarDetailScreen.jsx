@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, ActivityIndicator, Alert, StyleSheet, TouchableOpacity } from 'react-native';
 import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 import BarEventCard from './BarEventCard';
 
 const BarDetailScreen = ({ route }) => {
@@ -12,12 +12,12 @@ const BarDetailScreen = ({ route }) => {
   const [lastCheckIn, setLastCheckIn] = useState(null);
 
   useEffect(() => {
-    axios.get(`http://localhost:3001/api/v1/bars/${barId}`)
+    axios.get(`http://192.168.0.23:3001/api/v1/bars/${barId}`)
       .then(response => {
         setBar(response.data.bar);
         const eventsWithCheckInStatus = response.data.bar.events.map(event => ({
           ...event,
-          isCheckedIn: false, // Inicializamos cada evento con check-in como falso
+          isCheckedIn: false, 
         }));
         setEvents(eventsWithCheckInStatus);
         setLoading(false);
@@ -30,15 +30,20 @@ const BarDetailScreen = ({ route }) => {
 
   const handleCheckIn = async (eventId) => {
     try {
-      const JWT_TOKEN = await AsyncStorage.getItem('JWT_TOKEN');
-      const userId = await AsyncStorage.getItem('CURRENT_USER_ID');
+      console.log('Intentando obtener JWT_TOKEN y CURRENT_USER_ID...');
+      const JWT_TOKEN = await SecureStore.getItemAsync('JWT_TOKEN');
+      const userId = await SecureStore.getItemAsync('CURRENT_USER_ID');
+      
+      console.log('JWT_TOKEN obtenido:', JWT_TOKEN);
+      console.log('CURRENT_USER_ID obtenido:', userId);
+
       if (!JWT_TOKEN || !userId) {
         Alert.alert('Error', 'No se encontró el token JWT o el ID del usuario');
         return;
       }
 
       const response = await axios.post(
-        `http://localhost:3001/api/v1/events/${eventId}/attendances`, 
+        `http://192.168.0.23:3001/api/v1/events/${eventId}/attendances`, 
         {
           attendance: {
             user_id: userId,
@@ -52,13 +57,14 @@ const BarDetailScreen = ({ route }) => {
         }
       );
 
+      console.log('Respuesta de check-in:', response.data);
+
       if (response.data.status === 'already_checked_in') {
         Alert.alert('Ya inscrito', 'Ya estás inscrito en este evento.');
       } else {
         Alert.alert('Check-in realizado', 'Has hecho check-in en el evento. Tus amigos serán notificados.');
         setLastCheckIn(`Check-in realizado en el evento con ID: ${eventId}`);
         
-        // Actualizamos la lista de eventos para reflejar que el usuario hizo check-in
         setEvents(prevEvents =>
           prevEvents.map(event =>
             event.id === eventId ? { ...event, isCheckedIn: true } : event
@@ -94,7 +100,7 @@ const BarDetailScreen = ({ route }) => {
         renderItem={({ item }) => (
           <View style={styles.eventContainer}>
             <BarEventCard event={item} />
-            {/* El TouchableOpacity envuelve solo el botón de check-in */}
+            
             <TouchableOpacity
               style={[
                 styles.checkInButton,
@@ -154,13 +160,13 @@ const styles = StyleSheet.create({
   },
   checkInButton: {
     marginTop: 10,
-    backgroundColor: '#ffc107',
+    backgroundColor: '#000', // Fondo negro
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 8,
   },
   checkInButtonText: {
-    color: '#000',
+    color: '#fff', // Texto blanco
     fontWeight: 'bold',
     textAlign: 'center',
   },

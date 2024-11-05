@@ -1,4 +1,3 @@
-
 class API::V1::FriendshipsController < ApplicationController
   before_action :set_user
 
@@ -37,7 +36,6 @@ class API::V1::FriendshipsController < ApplicationController
         }
       }
       
-      # Solo incluye `event_id` si está presente
       response_data[:friendship][:event_id] = friendship.event_id if friendship.event_id.present?
 
       render json: response_data, status: :ok
@@ -60,13 +58,31 @@ class API::V1::FriendshipsController < ApplicationController
       return
     end
   
-    # Asigna un valor predeterminado a bar_id si no se ha proporcionado
     @friendship = @user.friendships.build(friendship_params)
-    @friendship.bar_id ||= 1 # Cambia a un valor predeterminado adecuado si es necesario
+    @friendship.bar_id ||= 1
 
     if @friendship.save
-      render json: @friendship, status: :created
+      notification_sent = false
+      if friend.expo_push_token.present?
+        notification_sent = PushNotificationService.send_notification(
+          to: friend.expo_push_token,
+          title: "¡Nueva amistad!",
+          body: "#{@user.handle} te ha agregado como amigo.",
+          data: { screen: "Home" }
+        )
+
+        if notification_sent
+          Rails.logger.info("Notificación enviada con éxito a #{friend.handle}")
+        else
+          Rails.logger.error("Error al enviar la notificación a #{friend.handle}")
+        end
+      else
+        Rails.logger.warn("El usuario #{friend.handle} no tiene expo_push_token, no se envió notificación")
+      end
+
+      render json: { friendship: @friendship, notification_sent: notification_sent }, status: :created
     else
+      Rails.logger.error("Error al guardar la amistad: #{@friendship.errors.full_messages.join(', ')}")
       render json: @friendship.errors, status: :unprocessable_entity
     end
   end

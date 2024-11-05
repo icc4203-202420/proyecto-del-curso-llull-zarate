@@ -22,13 +22,13 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    borderColor: '#000',  // Color del borde
+    borderColor: '#000', 
     borderWidth: 1,
     padding: 8,
     marginRight: 8,
-    color: '#000',  // Color del texto ingresado
+    color: '#000',  
     borderRadius: 8,
-    backgroundColor: '#fff',  // Fondo del TextInput
+    backgroundColor: '#fff',  
   },
 });
 
