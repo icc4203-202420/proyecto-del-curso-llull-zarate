@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, ActivityIndicator, Alert, StyleSheet, TouchableOpacity } from 'react-native';
 import axios from 'axios';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import * as SecureStore from 'expo-secure-store';
 import BarEventCard from './BarEventCard';
 
-const BarDetailScreen = ({ route }) => {
-  const { barId } = route.params;
+const BarDetailScreen = ({  }) => {
   const [bar, setBar] = useState(null);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [lastCheckIn, setLastCheckIn] = useState(null);
+  const route = useRoute();
+  const { barId } = route.params;
 
   useEffect(() => {
     axios.get(`http://192.168.0.23:3001/api/v1/bars/${barId}`)
@@ -52,7 +54,7 @@ const BarDetailScreen = ({ route }) => {
         }, 
         {
           headers: {
-            Authorization: `Bearer ${JWT_TOKEN}`,
+            Authorization: ` ${JWT_TOKEN}`,
           }
         }
       );
@@ -82,14 +84,13 @@ const BarDetailScreen = ({ route }) => {
   }
 
   if (!bar) {
-    return <Text style={styles.errorText}>No se encontró el bar.</Text>;
+    return <Text style={styles.noDataText}>Bar data not available.</Text>;
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{bar.name}</Text>
-      <Text style={styles.subtitle}>Ubicación: {bar.location || 'Ubicación no disponible'}</Text>
-      <Text style={styles.subtitle}>Descripción: {bar.description || 'Descripción no disponible'}</Text>
+      <Text style={styles.barName}>{bar.name}</Text>
+      <Text style={styles.barAddress}>{bar.address?.line1}, {bar.address?.line2}, {bar.address?.city}</Text>
 
       {lastCheckIn && <Text style={styles.checkInConfirmation}>{lastCheckIn}</Text>}
 
@@ -127,13 +128,13 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: '#fff',
   },
-  title: {
+  barName: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#000',
     marginBottom: 10,
   },
-  subtitle: {
+  barAddress: {
     fontSize: 16,
     color: '#666',
     marginBottom: 5,
@@ -150,7 +151,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     textAlign: 'center',
   },
-  errorText: {
+  noDataText: {
     textAlign: 'center',
     color: '#ff0000',
     fontSize: 16,

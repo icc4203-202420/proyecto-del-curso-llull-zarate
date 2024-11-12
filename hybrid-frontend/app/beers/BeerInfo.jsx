@@ -1,23 +1,31 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 
 const BeerInfo = ({ beer }) => (
-  <View style={styles.container}>
+  <TouchableOpacity style={styles.content}>
     <Text style={styles.name}>{beer.name}</Text>
-    <Text>Producido Por: {beer.producer}</Text>
-    <Text>Alcohol: {beer.alcohol}%</Text>
-    <Text>Amargor (IBU): {beer.ibu}</Text>
-    <Text>Rating Promedio: {beer.average_rating || 'No disponible'}</Text>
-  </View>
+    <Text style={styles.secondaryText}>
+      {beer.beer_type} - {beer.style} — Alcohol: {beer.alcohol}% | IBU: {beer.ibu} | 
+      Produced by: {beer.brewery_name}|Rating: {parseFloat(beer.avg_rating).toFixed(2) || 'N/A'}
+    </Text>
+  </TouchableOpacity>
 );
 
 const styles = StyleSheet.create({
-  container: {
+  content: {
     marginBottom: 20,
+    padding: 10,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
   },
   name: {
     fontSize: 24,
     fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  secondaryText: {
+    fontSize: 16,
+    color: '#555',
   },
 });
 

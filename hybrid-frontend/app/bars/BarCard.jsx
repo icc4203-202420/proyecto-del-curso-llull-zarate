@@ -8,7 +8,7 @@ const BarCard = ({ bar, onPress }) => (
     </View>
     <View style={styles.textContainer}>
       <Text style={styles.cardTitle}>{bar.name}</Text>
-      <Text style={styles.cardSubtitle}>Ubicación: {bar.location}</Text>
+      
     </View>
   </TouchableOpacity>
 );
