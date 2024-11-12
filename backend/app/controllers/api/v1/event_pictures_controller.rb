@@ -20,7 +20,8 @@ class API::V1::EventPicturesController < ApplicationController
   end
 
   def create
-    @event_picture = EventPicture.new(event_picture_params)
+    @event_picture = @event.event_pictures.new(event_picture_params)
+    @event_picture.user = current_user  # Asigna el usuario autenticado como propietario de la imagen
 
     if @event_picture.save
       notify_tagged_friends(@event_picture) if @event_picture.tagged_friends.present?
@@ -47,7 +48,7 @@ class API::V1::EventPicturesController < ApplicationController
   end
 
   def event_picture_params
-    params.require(:event_picture).permit(:description, :picture, :event_id, :user_id, tagged_friends: [])
+    params.require(:event_picture).permit(:description, :picture, :tagged_friends)
   end
 
   def verify_jwt_token

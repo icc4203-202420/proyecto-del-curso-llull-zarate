@@ -47,7 +47,7 @@ export async function savePushToken() {
       try {
         const JWT_TOKEN = await SecureStore.getItemAsync('JWT_TOKEN')
   
-        await axios.post(`http://192.168.0.23:3001/api/v1/users/update_push_token`, {
+        await axios.post(`http://192.168.0.12:3001/api/v1/users/update_push_token`, {
           expo_push_token: token,
         }, {
           headers: {

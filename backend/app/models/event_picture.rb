@@ -2,6 +2,7 @@ class EventPicture < ApplicationRecord
   belongs_to :event
   belongs_to :user
   has_one_attached :picture
+  attr_accessor :tagged_friends
 
   after_commit :save_picture_to_public_directory, on: [:create]
 

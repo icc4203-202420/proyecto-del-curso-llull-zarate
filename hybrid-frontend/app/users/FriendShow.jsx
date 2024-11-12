@@ -30,7 +30,7 @@ const FriendShow = () => {
 
   useEffect(() => {
     if (id) {
-      axios.get(`http://192.168.0.23:3001/api/v1/users/${id}`)
+      axios.get(`http://192.168.0.12:3001/api/v1/users/${id}`)
         .then(response => {
           setUser(response.data.user);
         })
@@ -43,7 +43,7 @@ const FriendShow = () => {
 
   useEffect(() => {
     if (currentUserId && id) {
-      axios.get(`http://192.168.0.23:3001/api/v1/users/${currentUserId}/friendships/${id}`)
+      axios.get(`http://192.168.0.12:3001/api/v1/users/${currentUserId}/friendships/${id}`)
         .then(response => {
           setIsFriend(response.data.is_friend);
         })
@@ -58,7 +58,7 @@ const FriendShow = () => {
     if (!currentUserId) return;
     setLoading(true);
     try {
-      await axios.post(`http://192.168.0.23:3001/api/v1/users/${currentUserId}/friendships`, {
+      await axios.post(`http://192.168.0.12:3001/api/v1/users/${currentUserId}/friendships`, {
         friendship: { friend_id: id }
       });
       setIsFriend(true);

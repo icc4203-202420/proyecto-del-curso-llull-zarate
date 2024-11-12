@@ -12,7 +12,7 @@ const BeersList = () => {
   const navigation = useNavigation();
 
   useEffect(() => {
-    axios.get('http://192.168.0.23:3001/api/v1/beers')
+    axios.get('http://192.168.0.12:3001/api/v1/beers')
       .then(response => {
         const uniqueBeers = response.data.beers.filter((beer, index, self) => 
           index === self.findIndex((b) => b.id === beer.id)
