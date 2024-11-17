@@ -7,6 +7,7 @@ import NotificationPusher from './app/NotificationPusher';
 
 
 import Home from './app/Home';
+//mport Feed from './app/services/Feed';
 
 
 import Login from './app/Login';
@@ -61,6 +62,8 @@ export default function App() {
         <Stack.Screen name="EventList" component={EventList} />
         <Stack.Screen name="EventIndex" component={EventIndex} options={{ title: 'Event Details' }} />
         <Stack.Screen name="EventPicture" component={EventPicture} options={{ title: 'Upload Photo' }} />
+        
+        
 
       </Stack.Navigator>
     </NavigationContainer>

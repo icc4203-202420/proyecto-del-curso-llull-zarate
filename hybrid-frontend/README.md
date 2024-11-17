@@ -62,3 +62,14 @@ const styles = StyleSheet.create({
 });
 
 export default TokenStorage;
+
+medifique:
+connection.rb
+feed_channel
+event.rb
+reviews.rb
+routes.rb
+  Ahora seguimos con el front
+  feed.jsx
+  importar actionable
+  

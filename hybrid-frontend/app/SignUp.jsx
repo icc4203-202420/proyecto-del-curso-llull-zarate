@@ -29,7 +29,7 @@ const SignUp = () => {
     }
 
     try {
-      const response = await axios.post('http://192.168.0.12:3001/api/v1/signup', {
+      const response = await axios.post('http://192.168.0.207:3001/api/v1/signup', {
         user: {
           first_name: firstName,
           last_name: lastName,

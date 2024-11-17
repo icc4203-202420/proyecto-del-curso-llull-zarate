@@ -14,7 +14,7 @@ const BarDetailScreen = ({  }) => {
   const { barId } = route.params;
 
   useEffect(() => {
-    axios.get(`http://192.168.0.12:3001/api/v1/bars/${barId}`)
+    axios.get(`http://192.168.0.207:3001/api/v1/bars/${barId}`)
       .then(response => {
         setBar(response.data.bar);
         const eventsWithCheckInStatus = response.data.bar.events.map(event => ({
@@ -45,7 +45,7 @@ const BarDetailScreen = ({  }) => {
       }
 
       const response = await axios.post(
-        `http://192.168.0.12:3001/api/v1/events/${eventId}/attendances`, 
+        `http://192.168.0.207:3001/api/v1/events/${eventId}/attendances`, 
         {
           attendance: {
             user_id: userId,

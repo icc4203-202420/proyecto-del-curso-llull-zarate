@@ -30,7 +30,7 @@ const FriendSearch = () => {
       if (currentUserId) {
         setLoading(true);
         try {
-          const response = await axios.get(`http://192.168.0.12:3001/api/v1/users`);
+          const response = await axios.get(`http://192.168.0.207:3001/api/v1/users`);
           const filteredUsers = response.data.users.filter(user => user.id !== parseInt(currentUserId));
           setUsers(filteredUsers);
         } catch (error) {

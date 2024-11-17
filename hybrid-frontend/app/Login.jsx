@@ -14,7 +14,7 @@ const Login = () => {
   const handleSubmit = async () => {
     console.log('Botón de inicio de sesión presionado');
     try {
-      const response = await axios.post('http://192.168.0.12:3001/api/v1/login', {
+      const response = await axios.post('http://192.168.0.207:3001/api/v1/login', {
         user: {
           email,
           password,

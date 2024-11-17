@@ -16,6 +16,14 @@ const Home = ({ navigation }) => {
 
       <TouchableOpacity
         style={styles.button}
+        onPress={() => navigation.navigate('Feed')}
+      >
+        <Text style={styles.buttonText}>Feed</Text>
+      </TouchableOpacity>
+
+
+      <TouchableOpacity
+        style={styles.button}
         onPress={() => navigation.navigate('BeersList')}
       >
         <Text style={styles.buttonText}>Beers</Text>

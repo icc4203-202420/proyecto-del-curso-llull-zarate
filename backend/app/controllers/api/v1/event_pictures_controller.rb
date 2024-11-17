@@ -12,7 +12,8 @@ class API::V1::EventPicturesController < ApplicationController
         user: {
           id: event_picture.user.id,
           handle: event_picture.user.handle
-        }
+        },
+        tagged_friends: event_picture.tagged_friends
       )
     end
 
@@ -22,7 +23,7 @@ class API::V1::EventPicturesController < ApplicationController
   def create
     @event_picture = @event.event_pictures.new(event_picture_params)
     @event_picture.user = current_user  # Asigna el usuario autenticado como propietario de la imagen
-
+    Rails.logger.info("Tagged friends: #{event_picture_params[:tagged_friends]}")
     if @event_picture.save
       notify_tagged_friends(@event_picture) if @event_picture.tagged_friends.present?
       render json: { message: 'Picture uploaded successfully', event_picture: @event_picture }, status: :created
@@ -48,7 +49,7 @@ class API::V1::EventPicturesController < ApplicationController
   end
 
   def event_picture_params
-    params.require(:event_picture).permit(:description, :picture, :tagged_friends)
+    params.require(:event_picture).permit(:description, :picture, tagged_friends: [])
   end
 
   def verify_jwt_token

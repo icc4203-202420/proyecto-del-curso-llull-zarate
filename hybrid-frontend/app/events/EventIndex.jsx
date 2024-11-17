@@ -35,7 +35,7 @@ const EventIndex = () => {
       return;
     }
     try {
-      const response = await axios.get(`http://192.168.0.12:3001/api/v1/events/${eventId}/pictures`, {
+      const response = await axios.get(`http://192.168.0.207:3001/api/v1/events/${eventId}/pictures`, {
         headers: { Authorization: `${token}` },
       });
       setPictures(response.data.event_pictures);
@@ -53,7 +53,7 @@ const EventIndex = () => {
         return;
       }
       try {
-        const response = await axios.get(`http://192.168.0.12:3001/api/v1/events/${eventId}`, {
+        const response = await axios.get(`http://192.168.0.207:3001/api/v1/events/${eventId}`, {
           headers: { Authorization: ` ${token}` },
         });
         setEventDetails(response.data.event);
@@ -69,7 +69,7 @@ const EventIndex = () => {
     fetchEventPictures();
   }, [eventId, fetchEventPictures]);
 
-  // Función para actualizar la lista de imágenes después de subir una
+
   const handleUploadComplete = () => {
     setModalVisible(false);
     fetchEventPictures();

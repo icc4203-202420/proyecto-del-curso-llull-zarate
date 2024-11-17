@@ -17,7 +17,7 @@ const Logout = () => {
       }
 
       
-      await axios.delete('http://192.168.0.12:3001/api/v1/logout', {
+      await axios.delete('http://192.168.0.207:3001/api/v1/logout', {
         headers: { Authorization: `${JWT_TOKEN}` }, 
       });
 
