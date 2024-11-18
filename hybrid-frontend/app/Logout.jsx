@@ -3,6 +3,7 @@ import { View, Text, Button, StyleSheet, Alert } from 'react-native';
 import * as SecureStore from 'expo-secure-store'; // Usar SecureStore
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
+import api from './axiosConfig';
 
 const Logout = () => {
   const navigation = useNavigation();
@@ -17,7 +18,7 @@ const Logout = () => {
       }
 
       
-      await axios.delete('http://192.168.0.207:3001/api/v1/logout', {
+      await api.delete('/api/v1/logout', {
         headers: { Authorization: `${JWT_TOKEN}` }, 
       });
 

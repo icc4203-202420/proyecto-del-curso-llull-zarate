@@ -4,7 +4,7 @@ import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import * as SecureStore from 'expo-secure-store';
 import { savePushToken } from './notifications';
-
+import api from './axiosConfig';
 const SignUp = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -29,7 +29,7 @@ const SignUp = () => {
     }
 
     try {
-      const response = await axios.post('http://192.168.0.207:3001/api/v1/signup', {
+      const response = await api.post('/api/v1/signup', {
         user: {
           first_name: firstName,
           last_name: lastName,
