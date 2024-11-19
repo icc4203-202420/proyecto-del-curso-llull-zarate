@@ -1,36 +1,37 @@
 {
-    "expo": {
-      "name": "hybrid-frontend",
-      "slug": "hybrid-frontend",
-      "version": "1.0.0",
-      "orientation": "portrait",
-      "icon": "./assets/icon.png",
-      "userInterfaceStyle": "light",
-      "splash": {
-        "image": "./assets/splash.png",
-        "resizeMode": "contain",
+  "expo": {
+    "name": "hybrid-frontend",
+    "slug": "hybrid-frontend",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      },
-      "ios": {
-        "supportsTablet": true
-      },
-      "android": {
-        "adaptiveIcon": {
-          "foregroundImage": "./assets/adaptive-icon.png",
-          "backgroundColor": "#ffffff"
-        }
-      },
-      "web": {
-        "favicon": "./assets/favicon.png"
-      },
-      "plugins": [
-        "expo-router"
-      ],
-      "extra": {
-        "eas": {
-          "projectId": "bc90e3fe-355e-464d-a9db-e6645624b1e1"
-        }
-      },
-      "owner": "im_diegollull"
-    }
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "bc90e3fe-355e-464d-a9db-e6645624b1e1"
+      }
+    },
+    "owner": "im_diegollull"
   }
+}

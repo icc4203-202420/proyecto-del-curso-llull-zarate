@@ -14,13 +14,6 @@ const EventPictureCard = ({ picture }) => {
       )}
       <View style={styles.info}>
         <Text style={styles.description}>{picture.description || 'Sin descripción'}</Text>
-        {picture.tagged_friends && picture.tagged_friends.length > 0 ? (
-          <Text style={styles.tagged}>
-            Amigos etiquetados: {picture.tagged_friends.join(', ')}
-          </Text>
-        ) : (
-          <Text style={styles.tagged}>No hay amigos etiquetados</Text>
-        )}
       </View>
     </View>
   );
@@ -54,10 +47,6 @@ const styles = StyleSheet.create({
   description: {
     fontSize: 16,
     fontWeight: 'bold',
-  },
-  tagged: {
-    fontSize: 14,
-    color: '#555',
   },
 });
 

@@ -9,6 +9,7 @@ import NotificationPusher from './app/NotificationPusher';
 import Home from './app/Home';
 
 
+
 import Login from './app/Login';
 import SignUp from './app/SignUp';
 import Logout from './app/Logout';
@@ -29,8 +30,9 @@ import FriendShow from './app/users/FriendShow';
 
 import EventList from './app/events/EventList';
 import EventIndex from './app/events/EventIndex';
+import FeedScreen from './app/feed/FeedScreen';
 
-import EventPicture from './app/events/EventPicture';
+//import EventPicture from './app/events/EventPicture';
 
 const Stack = createStackNavigator();
 
@@ -60,7 +62,9 @@ export default function App() {
         <Stack.Screen name="FriendShow" component={FriendShow} options={{ title: 'Friend Details' }} />
         <Stack.Screen name="EventList" component={EventList} />
         <Stack.Screen name="EventIndex" component={EventIndex} options={{ title: 'Event Details' }} />
-        <Stack.Screen name="EventPicture" component={EventPicture} options={{ title: 'Upload Photo' }} />
+        <Stack.Screen name="FeedScreen" component={FeedScreen} options={{ title: 'Feed' }} />
+        
+        
 
       </Stack.Navigator>
     </NavigationContainer>

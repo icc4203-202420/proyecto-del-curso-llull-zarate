@@ -55,14 +55,14 @@ const BeerDetailScreen = ({ route }) => {
   }, [navigation]);
 
   const fetchBeerDetails = () => {
-    axios.get(`http://192.168.0.23:3001/api/v1/beers/${id}`)
+    axios.get(`http://192.168.0.12:3001/api/v1/beers/${id}`)
       .then(response => setBeer(response.data.beer))
       .catch(error => console.error(error));
   };
 
   const fetchReviews = async () => {
     const userId = await SecureStore.getItemAsync('CURRENT_USER_ID');
-    axios.get(`http://192.168.0.23:3001/api/v1/beers/${id}/reviews`)
+    axios.get(`http://192.168.0.12:3001/api/v1/beers/${id}/reviews`)
       .then(response => {
         dispatch({
           type: 'FETCH_REVIEWS_SUCCESS',
@@ -82,7 +82,7 @@ const BeerDetailScreen = ({ route }) => {
     const userId = await SecureStore.getItemAsync('CURRENT_USER_ID');
     if (userId) {
       try {
-        const response = await axios.post(`http://192.168.0.23:3001/api/v1/beers/${beer.id}/reviews`, {
+        const response = await axios.post(`http://192.168.0.12:3001/api/v1/beers/${beer.id}/reviews`, {
           review,
           user_id: userId
         });

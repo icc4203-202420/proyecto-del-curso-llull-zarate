@@ -4,6 +4,7 @@ class Review < ApplicationRecord
 
   after_save :update_beer_rating
   after_destroy :update_beer_rating
+  #afeter_create_commit : broadcast_to_firends
 
   private
 
@@ -12,3 +13,5 @@ class Review < ApplicationRecord
   end
 
 end
+
+##data.user--> frontend

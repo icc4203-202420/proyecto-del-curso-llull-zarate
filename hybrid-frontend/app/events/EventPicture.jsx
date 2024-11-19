@@ -1,59 +1,55 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TouchableOpacity, TextInput, Image, ActivityIndicator, StyleSheet, Alert, FlatList } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, Alert, FlatList } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import axios from 'axios';
-import { useNavigation, useRoute } from '@react-navigation/native';
 import * as SecureStore from 'expo-secure-store';
-import EventPictureCard from './EventPictureCard'; 
+import { useNavigation } from '@react-navigation/native';
 
-const EventPicture = ({ eventId: propEventId, eventName: propEventName }) => {
+const EventPicture = ({ eventId, onClose, onUploadComplete }) => {
   const [image, setImage] = useState(null);
   const [description, setDescription] = useState('');
-  const [uploading, setUploading] = useState(false);
   const [friends, setFriends] = useState([]);
   const [taggedFriends, setTaggedFriends] = useState([]);
-  const [pictures, setPictures] = useState([]);
-  const route = useRoute();
   const navigation = useNavigation();
 
-  const eventId = propEventId || route.params?.eventId;
-  const eventName = propEventName || route.params?.eventName;
-
-  const fetchEventPictures = useCallback(async () => {
+  const getToken = async () => {
     try {
-      const response = await axios.get(`http://192.168.0.23:3001/api/v1/events/${eventId}/pictures`);
-      setPictures(response.data.event_pictures);
+      return await SecureStore.getItemAsync('JWT_TOKEN');
     } catch (error) {
-      console.error('Error fetching event pictures:', error);
+      console.error('Error retrieving token:', error);
+      return null;
     }
-  }, [eventId]);
+  };
 
   useEffect(() => {
     const fetchFriends = async () => {
-      try {
-        const userId = await SecureStore.getItemAsync('CURRENT_USER_ID');
-        if (userId) {
-          const response = await axios.get(`http://192.168.0.23:3001/api/v1/users/${userId}`);
+      const userId = await SecureStore.getItemAsync('CURRENT_USER_ID');
+      const token = await getToken();
+      if (userId && token) {
+        try {
+          const response = await axios.get(`http://192.168.0.207:3001/api/v1/users/${userId}`, {
+            headers: { Authorization: `${token}` },
+          });
           setFriends(response.data.friends);
+        } catch (error) {
+          console.error('Error fetching friends:', error);
         }
-      } catch (error) {
-        console.error('Error fetching user data:', error);
+      } else {
+        console.error('User ID or token not found');
       }
     };
-
     fetchFriends();
-    fetchEventPictures();
-  }, [eventId, fetchEventPictures]);
+  }, []);
 
   const selectImage = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permissionResult.granted) {
-      Alert.alert('Permiso requerido', 'Se necesita permiso para acceder a la galería.');
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission Denied', 'We need access to your photo library to upload images.');
       return;
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [4, 3],
       quality: 1,
@@ -73,200 +69,185 @@ const EventPicture = ({ eventId: propEventId, eventName: propEventName }) => {
   };
 
   const uploadImage = async () => {
-    if (!image || !description) {
-      Alert.alert('Error', 'Por favor selecciona una imagen y proporciona una descripción.');
+    if (!image || !description.trim()) {
+      Alert.alert('Error', 'Please select an image and enter a description.');
       return;
     }
 
-    setUploading(true);
+    const token = await getToken();
+    if (!token) {
+      Alert.alert('Error', 'No token found');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('event_picture[description]', description);
+    formData.append('event_picture[picture]', {
+      uri: image,
+      type: 'image/jpeg',
+      name: `photo_${Date.now()}.jpg`,
+    });
+    taggedFriends.forEach((friendId) => {
+      formData.append('event_picture[tagged_friends][]', friendId);
+    });
 
     try {
-      const userId = await SecureStore.getItemAsync('CURRENT_USER_ID');
-      const JWT_TOKEN = await SecureStore.getItemAsync('JWT_TOKEN');
-
-      if (!JWT_TOKEN || !userId) {
-        Alert.alert('Error', 'Token de autenticación o ID de usuario no encontrado');
-        setUploading(false);
-        return;
-      }
-
-      const uriParts = image.split('.');
-      const fileType = uriParts[uriParts.length - 1];
-      const mimeType = `image/${fileType === 'jpg' ? 'jpeg' : fileType}`;
-
-      // Generar un nombre de archivo único usando la fecha y hora actual
-      const timestamp = new Date().toISOString().replace(/[:.-]/g, ''); // Formatear para que sea un nombre de archivo válido
-      const uniqueFileName = `photo_${timestamp}.${fileType}`;
-
-      const formData = new FormData();
-      formData.append('event_picture[event_id]', eventId);
-      formData.append('event_picture[user_id]', parseInt(userId, 10));
-      formData.append('event_picture[description]', description);
-      formData.append('event_picture[tagged_friends]', JSON.stringify(taggedFriends));
-      formData.append('event_picture[picture]', {
-        uri: image,
-        type: mimeType,
-        name: uniqueFileName, // Usar el nombre de archivo único
-      });
-
-      await axios.post(`http://192.168.0.23:3001/api/v1/events/${eventId}/pictures`, formData, {
+      await axios.post(`http://192.168.0.207:3001/api/v1/events/${eventId}/pictures`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
-          Authorization: `${JWT_TOKEN}`,
+          Authorization: `${token}`,
         },
       });
-
-      Alert.alert('Éxito', 'La foto se ha subido exitosamente.');
-      setImage(null);
-      setDescription('');
-      setTaggedFriends([]);
-      fetchEventPictures(); 
+      Alert.alert('Success', 'The photo has been uploaded successfully.');
+      onUploadComplete(); // Refrescar fotos en EventIndex
+      onClose(); // Regresa a EventIndex
     } catch (error) {
-      console.error('Error uploading image:', error);
-      Alert.alert('Error', 'Hubo un problema al subir la imagen.');
-    } finally {
-      setUploading(false);
+      console.error('Error uploading image:', error.response?.data || error.message);
+      Alert.alert('Error', 'There was a problem uploading the image.');
     }
   };
 
   return (
-    <View style={styles.container}>
+    <View style={styles.modalContainer}>
+      <Text style={styles.modalTitle}>Upload a New Photo</Text>
+
       <TouchableOpacity style={styles.imageContainer} onPress={selectImage}>
         {image ? (
           <Image source={{ uri: image }} style={styles.imagePreview} />
         ) : (
-          <Text style={styles.imagePlaceholder}>Seleccionar Imagen</Text>
+          <Text style={styles.imagePlaceholder}>Select Image</Text>
         )}
       </TouchableOpacity>
 
       <TextInput
         style={styles.input}
-        placeholder="Descripción"
-        placeholderTextColor="#555"
+        placeholder="Write a description..."
+        placeholderTextColor="#aaa"
         value={description}
         onChangeText={setDescription}
       />
 
-      <Text style={styles.title}>Amigos disponibles para etiquetar:</Text>
-      <View style={styles.tagContainer}>
-        <FlatList
-          data={friends}
-          horizontal
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={[
-                styles.tagItem,
-                taggedFriends.includes(item.id) && styles.tagItemSelected,
-              ]}
-              onPress={() => toggleTaggedFriend(item.id)}
-            >
-              <Text style={styles.tagText}>{item.handle}</Text>
-            </TouchableOpacity>
-          )}
-        />
-      </View>
+      <Text style={styles.title}>Tag Friends:</Text>
+      <FlatList
+        data={friends}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={[styles.friendItem, taggedFriends.includes(item.id) && styles.friendSelected]}
+            onPress={() => toggleTaggedFriend(item.id)}
+          >
+            <Text style={styles.friendName}>{item.handle}</Text>
+            <Text style={styles.friendTag}>
+              {taggedFriends.includes(item.id) ? '💙' : '⬜️'}
+            </Text>
+          </TouchableOpacity>
+        )}
+      />
 
-      <TouchableOpacity
-        style={[styles.uploadButton, uploading && styles.buttonDisabled]}
-        onPress={uploadImage}
-        disabled={uploading}
-      >
-        <Text style={styles.uploadButtonText}>{uploading ? 'Subiendo...' : 'Subir Foto'}</Text>
+      <TouchableOpacity style={styles.uploadButton} onPress={uploadImage}>
+        <Text style={styles.uploadButtonText}>Upload Photo</Text>
       </TouchableOpacity>
 
-      {uploading && <ActivityIndicator size="large" color="#000" style={styles.loader} />}
-
-      <FlatList
-        data={pictures}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => <EventPictureCard picture={item} />}
-      />
+      <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
+        <Text style={styles.cancelButtonText}>Cancel</Text>
+      </TouchableOpacity>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  modalContainer: {
     flex: 1,
-    padding: 20,
     backgroundColor: '#fff',
     alignItems: 'center',
+    paddingTop: 50,
+    paddingHorizontal: 20,
   },
-  title: {
-    fontSize: 18,
+  modalTitle: {
+    fontSize: 26,
     fontWeight: 'bold',
     color: '#000',
-    marginVertical: 10,
+    marginBottom: 20,
   },
   imageContainer: {
-    width: 140,
-    height: 140,
-    backgroundColor: '#ddd',
+    width: '80%',
+    height: 200,
+    backgroundColor: '#f0f0f0',
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 12,
+    borderRadius: 10,
     marginBottom: 20,
   },
   imagePreview: {
     width: '100%',
     height: '100%',
-    borderRadius: 12,
-    resizeMode: 'cover',
+    borderRadius: 10,
   },
   imagePlaceholder: {
-    color: '#000',
+    color: '#888',
     fontSize: 16,
   },
   input: {
     width: '100%',
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 10,
-    padding: 12,
+    padding: 15,
     backgroundColor: '#f9f9f9',
-    marginBottom: 20,
-    fontSize: 16,
     color: '#000',
+    borderRadius: 8,
+    fontSize: 16,
+    marginBottom: 20,
   },
-  tagContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
     marginVertical: 10,
   },
-  tagItem: {
-    backgroundColor: '#000',
-    borderRadius: 15,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    marginRight: 8,
-    marginBottom: 8,
+  friendItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    backgroundColor: '#eaeaea',
+    borderRadius: 8,
+    marginVertical: 5,
+    borderWidth: 1,
+    borderColor: '#ccc',
   },
-  tagItemSelected: {
-    backgroundColor: '#555',
+  friendName: {
+    fontSize: 16,
+    color: '#333',
   },
-  tagText: {
-    color: '#fff',
+  friendTag: {
     fontSize: 14,
+    color: '#007bff', // Color azul moderno
+  },
+  friendSelected: {
+    backgroundColor: '#d0e8ff', // Azul claro para amigos seleccionados
   },
   uploadButton: {
-    backgroundColor: '#000',
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-    borderRadius: 10,
     width: '100%',
+    padding: 15,
+    backgroundColor: '#000',
+    borderRadius: 8,
     alignItems: 'center',
-  },
-  buttonDisabled: {
-    backgroundColor: '#888',
+    marginBottom: 10,
   },
   uploadButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
   },
-  loader: {
-    marginTop: 20,
+  cancelButton: {
+    width: '100%',
+    padding: 15,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    color: '#000',
+    fontSize: 16,
   },
 });
 

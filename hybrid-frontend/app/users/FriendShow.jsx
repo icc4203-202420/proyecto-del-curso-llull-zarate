@@ -30,7 +30,7 @@ const FriendShow = () => {
 
   useEffect(() => {
     if (id) {
-      axios.get(`http://192.168.0.23:3001/api/v1/users/${id}`)
+      axios.get(`http://192.168.0.12:3001/api/v1/users/${id}`)
         .then(response => {
           setUser(response.data.user);
         })
