@@ -4,6 +4,8 @@ import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import * as SecureStore from 'expo-secure-store';
 import { savePushToken } from './notifications';
+import api from './axiosConfig';
+
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -14,7 +16,7 @@ const Login = () => {
   const handleSubmit = async () => {
     console.log('Botón de inicio de sesión presionado');
     try {
-      const response = await axios.post('http://192.168.0.207:3001/api/v1/login', {
+      const response = await api.post('/api/v1/login', {
         user: {
           email,
           password,
@@ -22,7 +24,8 @@ const Login = () => {
       });
 
       console.log('Respuesta recibida:', response.data);
-
+      console.log('Datos del usuario:', response.data.status?.data?.user);
+      
       const JWT_TOKEN = response.headers['authorization'];
       const CURRENT_USER_ID = response.data.status.data.user.id;
 

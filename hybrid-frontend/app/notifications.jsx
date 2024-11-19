@@ -3,7 +3,7 @@ import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
-
+import api from './axiosConfig';
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -47,7 +47,7 @@ export async function savePushToken() {
       try {
         const JWT_TOKEN = await SecureStore.getItemAsync('JWT_TOKEN')
   
-        await axios.post(`http://192.168.0.207:3001/api/v1/users/update_push_token`, {
+        await api.post(`/api/v1/users/update_push_token`, {
           expo_push_token: token,
         }, {
           headers: {

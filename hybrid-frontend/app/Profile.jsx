@@ -3,6 +3,7 @@ import { View, Text, Button, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import api from './axiosConfig';
 
 const Profile = () => {
   const navigation = useNavigation();
@@ -14,7 +15,7 @@ const Profile = () => {
         const JWT_TOKEN = await AsyncStorage.getItem('JWT_TOKEN');
 
         if (JWT_TOKEN) {
-          const response = await axios.get('http://192.168.0.207:3001/api/v1/users/me', { 
+          const response = await api.get('/api/v1/Profile', { 
             headers: { Authorization: `Bearer ${JWT_TOKEN}` },
           });
           setUser(response.data.user); 

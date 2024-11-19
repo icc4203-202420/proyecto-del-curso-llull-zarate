@@ -1,7 +1,9 @@
 class API::V1::SessionsController < Devise::SessionsController
   include ::RackSessionsFix
   respond_to :json
+
   private
+
   def respond_with(current_user, _opts = {})
     render json: {
       status: { 
@@ -10,17 +12,26 @@ class API::V1::SessionsController < Devise::SessionsController
       }
     }, status: :ok
   end
+
   def respond_to_on_destroy
+    current_user = nil
+
     if request.headers['Authorization'].present?
-      jwt_payload = JWT.decode(
-        request.headers['Authorization'].split(' ').last,
-        Rails.application.credentials.devise_jwt_secret_key,
-        true,
-        { algorithm: 'HS256' }
-      ).first
-      current_user = User.find(jwt_payload['sub'])
+      begin
+        jwt_payload = JWT.decode(
+          request.headers['Authorization'].split(' ').last,
+          Rails.application.credentials.devise_jwt_secret_key,
+          true,
+          { algorithm: 'HS256' }
+        ).first
+        current_user = User.find(jwt_payload['sub'])
+      rescue JWT::ExpiredSignature
+        current_user = nil
+      rescue JWT::DecodeError
+        current_user = nil
+      end
     end
-    
+
     if current_user
       render json: {
         status: 200,
@@ -32,5 +43,11 @@ class API::V1::SessionsController < Devise::SessionsController
         message: "Couldn't find an active session."
       }, status: :unauthorized
     end
+
+  rescue JWT::DecodeError => e
+    render json: {
+      status: 401,
+      message: "Invalid or missing token: #{e.message}"
+    }, status: :unauthorized
   end
 end
