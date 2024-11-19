@@ -1,36 +1,42 @@
 import React from 'react';
 import { View, Text, Button, StyleSheet, Alert } from 'react-native';
-import * as SecureStore from 'expo-secure-store'; // Usar SecureStore
-import axios from 'axios';
+import * as SecureStore from 'expo-secure-store'; // Manejo de almacenamiento seguro
 import { useNavigation } from '@react-navigation/native';
-import api from './axiosConfig';
 
 const Logout = () => {
   const navigation = useNavigation();
 
   const handleLogout = async () => {
     try {
-      const JWT_TOKEN = await SecureStore.getItemAsync('JWT_TOKEN');
+      console.log('Intentando cerrar sesión...');
 
-      if (!JWT_TOKEN) {
-        Alert.alert('Error', 'No se encontró el token, por favor inicia sesión de nuevo.');
-        return;
-      }
-
-      
-      await api.delete('/api/v1/logout', {
-        headers: { Authorization: `${JWT_TOKEN}` }, 
-      });
-
-      
+      // Intenta eliminar el token del almacenamiento seguro, incluso si no existe
       await SecureStore.deleteItemAsync('JWT_TOKEN');
       await SecureStore.deleteItemAsync('CURRENT_USER_ID');
 
-      Alert.alert('¡Cierre de sesión exitoso!');
-      navigation.navigate('Login'); 
+      console.log('JWT_TOKEN y CURRENT_USER_ID eliminados.');
+
+      // Notifica al usuario que se cerró sesión
+      Alert.alert('¡Cierre de sesión exitoso!', 'Has salido de tu cuenta.');
+      console.log('Redirigiendo al Login...');
+
+      // Redirige al inicio de sesión
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
+      });
     } catch (error) {
-      console.error('Error cerrando sesión:', error);
-      Alert.alert('Error', 'Hubo un problema al cerrar sesión. Por favor, intenta de nuevo.');
+      console.error('Error al cerrar sesión:', error);
+      Alert.alert(
+        'Error',
+        'Hubo un problema al intentar cerrar sesión. Redirigiendo de todas formas.'
+      );
+
+      // Redirige al login como última instancia
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
+      });
     }
   };
 

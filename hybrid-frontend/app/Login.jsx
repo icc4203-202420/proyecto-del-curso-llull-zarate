@@ -24,7 +24,8 @@ const Login = () => {
       });
 
       console.log('Respuesta recibida:', response.data);
-
+      console.log('Datos del usuario:', response.data.status?.data?.user);
+      
       const JWT_TOKEN = response.headers['authorization'];
       const CURRENT_USER_ID = response.data.status.data.user.id;
 
